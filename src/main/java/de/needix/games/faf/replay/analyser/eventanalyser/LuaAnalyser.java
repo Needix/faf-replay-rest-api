@@ -106,11 +106,15 @@ public class LuaAnalyser {
             float mass = (float) lua.get("Mass");
 
             ReplayPlayer fromPlayer = replayToFill.getPlayers().get(fromId);
-            fromPlayer.increaseEnergyShared(energy);
-            fromPlayer.increaseMassShared(mass);
+            if (fromPlayer != null) {
+                fromPlayer.increaseEnergyShared(energy);
+                fromPlayer.increaseMassShared(mass);
+            }
             ReplayPlayer toPlayer = replayToFill.getPlayers().get(toId);
-            toPlayer.increaseMassReceived(mass);
-            toPlayer.increaseEnergyReceived(energy);
+            if (toPlayer != null) {
+                toPlayer.increaseMassReceived(mass);
+                toPlayer.increaseEnergyReceived(energy);
+            }
         }
     }
 
