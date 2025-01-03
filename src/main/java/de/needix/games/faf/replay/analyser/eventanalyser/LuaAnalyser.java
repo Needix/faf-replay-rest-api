@@ -22,7 +22,12 @@ public class LuaAnalyser {
 
     public void analyzeLua(Command command) {
         Map<String, Object> commandData = command.getCommandData();
-        Map<Object, Object> lua = (Map<Object, Object>) commandData.get("lua");
+        Object luaObject = commandData.get("lua");
+        if (!(luaObject instanceof Map)) {
+            LOGGER.debug("Lua object is not a map and will not be handled: {}", luaObject);
+            return;
+        }
+        Map<Object, Object> lua = (Map<Object, Object>) luaObject;
         String luaName = commandData.get("lua_name").toString();
         switch (luaName) {
             case "GiveResourcesToPlayer":
