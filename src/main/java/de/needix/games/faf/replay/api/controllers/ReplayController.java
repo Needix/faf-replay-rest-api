@@ -37,22 +37,20 @@ public class ReplayController {
     @Autowired
     private ReplayRepository replayRepository;
 
-    @PostMapping("/{replayId}")
-    public ResponseEntity<String> downloadReplay(
-            @PathVariable("replayId") long replayId,
+    @GetMapping("/{replayId}")
+    public ResponseEntity<?> getReplayById(
+            @PathVariable("replayId") Long replayId,
             @RequestParam(value = "force", required = false, defaultValue = "false") boolean force) {
-
         if (force) {
             // Dynamically check if the user has the required role/authority
-            if (!hasPermissionToForce()) {
+            if (denyForceAnalyseAccess()) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body("You don't have permission to forcibly reanalyze replays.");
             }
         } else {
             Optional<Replay> replayById = replayRepository.findById(replayId);
             if (replayById.isPresent()) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body("Replay with ID " + replayId + " has already been analyzed and does not need to be analyzed again.");
+                return ResponseEntity.ok(replayById.get());
             }
         }
 
@@ -74,23 +72,19 @@ public class ReplayController {
 
         replayRepository.save(createdReplay);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("Replay with ID " + replayId + " has been successfully analyzed.");
+        return ResponseEntity.ok(createdReplay);
     }
 
-    /**
-     * Helper method to check if the current user has permission to force reanalyze.
-     */
-    private boolean hasPermissionToForce() {
+    private boolean denyForceAnalyseAccess() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             return authentication.getAuthorities().stream()
-                    .anyMatch(grantedAuthority ->
+                    .noneMatch(grantedAuthority ->
                             grantedAuthority.getAuthority().equals("ROLE_ADMIN") ||
                                     grantedAuthority.getAuthority().equals("REPLAY_FORCE_ACCESS")
                     );
         }
-        return false;
+        return true;
     }
 
     @GetMapping("/ids")
@@ -99,14 +93,6 @@ public class ReplayController {
                 .map(Replay::getId)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(replayIds);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getReplayById(@PathVariable("id") Long id) {
-        return replayRepository.findById(id)
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Replay with ID " + id + " not found"));
     }
 
     @PostConstruct
