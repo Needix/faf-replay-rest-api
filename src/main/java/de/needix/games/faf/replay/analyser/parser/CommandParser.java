@@ -1,5 +1,6 @@
 package de.needix.games.faf.replay.analyser.parser;
 
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,7 +171,7 @@ public class CommandParser {
         Map<String, Object> result = new HashMap<>();
         result.put("command_id", reader.readInt());
         result.put("arg1", reader.readInt());
-        result.put("command_type", reader.readByte());
+        result.put("command_type", UnitCommandType.fromValue(reader.readByte()));
         result.put("arg2", reader.readInt());
         result.put("target", parseTarget(reader));
         result.put("arg3", reader.readBool());
@@ -301,6 +302,69 @@ public class CommandParser {
     }
 
     // Additional helper methods for parsing targets, formations, etc., can be added here.
+
+    @Getter
+    private enum UnitCommandType {
+        UNITCOMMAND_None(0),
+        UNITCOMMAND_Stop(1),
+        UNITCOMMAND_Move(2),
+        UNITCOMMAND_Dive(3),
+        UNITCOMMAND_FormMove(4),
+        UNITCOMMAND_BuildSiloTactical(5),
+        UNITCOMMAND_BuildSiloNuke(6),
+        UNITCOMMAND_BuildFactory(7),
+        UNITCOMMAND_BuildMobile(8),
+        UNITCOMMAND_BuildAssist(9),
+        UNITCOMMAND_Attack(10),
+        UNITCOMMAND_FormAttack(11),
+        UNITCOMMAND_Nuke(12),
+        UNITCOMMAND_Tactical(13),
+        UNITCOMMAND_Teleport(14),
+        UNITCOMMAND_Guard(15),
+        UNITCOMMAND_Patrol(16),
+        UNITCOMMAND_Ferry(17),
+        UNITCOMMAND_FormPatrol(18),
+        UNITCOMMAND_Reclaim(19),
+        UNITCOMMAND_Repair(20),
+        UNITCOMMAND_Capture(21),
+        UNITCOMMAND_TransportLoadUnits(22),
+        UNITCOMMAND_TransportReverseLoadUnits(23),
+        UNITCOMMAND_TransportUnloadUnits(24),
+        UNITCOMMAND_TransportUnloadSpecificUnits(25),
+        UNITCOMMAND_DetachFromTransport(26),
+        UNITCOMMAND_Upgrade(27),
+        UNITCOMMAND_Script(28),
+        UNITCOMMAND_AssistCommander(29),
+        UNITCOMMAND_KillSelf(30),
+        UNITCOMMAND_DestroySelf(31),
+        UNITCOMMAND_Sacrifice(32),
+        UNITCOMMAND_Pause(33),
+        UNITCOMMAND_OverCharge(34),
+        UNITCOMMAND_AggressiveMove(35),
+        UNITCOMMAND_FormAggressiveMove(36),
+        UNITCOMMAND_AssistMove(37),
+        UNITCOMMAND_SpecialAction(38),
+        UNITCOMMAND_Dock(39);
+
+        // Getter to retrieve the integer value.
+        private final int value;
+
+        // Constructor to assign integer values.
+        UnitCommandType(int value) {
+            this.value = value;
+        }
+
+        // Method to convert integer to corresponding enum.
+        public static UnitCommandType fromValue(int value) {
+            for (UnitCommandType commandType : values()) {
+                if (commandType.value == value) {
+                    return commandType;
+                }
+            }
+            throw new IllegalArgumentException("Unknown value: " + value);
+        }
+
+    }
 
     public interface CommandFunction {
         Map<String, Object> parse(ReplayParser reader);
