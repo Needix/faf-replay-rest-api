@@ -95,6 +95,16 @@ public class ReplayController {
         return ResponseEntity.ok(replayIds);
     }
 
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteAllReplays() {
+        if (denyForceAnalyseAccess()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You don't have permission to delete replays.");
+        }
+        replayRepository.deleteAll();
+        return ResponseEntity.ok("All replays deleted successfully.");
+    }
+
     @PostConstruct
     public void initHotfolderListener() {
         executorService.submit(() -> {
