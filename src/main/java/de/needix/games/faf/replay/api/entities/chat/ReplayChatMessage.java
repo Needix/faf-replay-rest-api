@@ -15,7 +15,9 @@ public class ReplayChatMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private int tick;
     private String sender;
     private String receiver;
     private String message;
+    private boolean isMarker;
 }

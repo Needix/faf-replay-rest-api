@@ -15,12 +15,26 @@ public class ChatAnalyser {
         LOGGER.trace("Chat message received: {}, from: {}", message, senderName);
 
         String to = message.get("to").toString(); // allies notify name
+        int playerId = command.getPlayerId();
+
+        if (to.equals("all")) {
+            if (playerId != 0) {
+                return;
+            }
+        } else if (to.equals("ally") || to.equals("notify")) {
+            if (playerId != 0 && playerId != 1) {
+                return;
+            }
+        }
+
         String text = message.get("text").toString();
 
         ReplayChatMessage replayChatMessage = new ReplayChatMessage();
+        replayChatMessage.setTick(command.getTick());
         replayChatMessage.setSender(senderName);
         replayChatMessage.setReceiver(to);
         replayChatMessage.setMessage(text);
+        replayChatMessage.setMarker(message.get("camera") != null);
 
         replayToFill.getChatMessages().add(replayChatMessage);
     }
