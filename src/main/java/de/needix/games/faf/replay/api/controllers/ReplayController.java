@@ -47,6 +47,7 @@ public class ReplayController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body("You don't have permission to forcibly reanalyze replays.");
             }
+            LOGGER.info("Forcibly reanalyzing replay with ID {}", replayId);
         } else {
             Optional<Replay> replayById = replayRepository.findById(replayId);
             if (replayById.isPresent()) {
