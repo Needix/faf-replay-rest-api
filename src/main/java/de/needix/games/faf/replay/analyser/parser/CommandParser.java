@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 public class CommandParser {
-    private static final Logger logger = LoggerFactory.getLogger(CommandParser.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandParser.class);
 
     private static final Map<CommandType, CommandFunction> COMMAND_PARSERS = new HashMap<>();
 
@@ -40,7 +40,7 @@ public class CommandParser {
     public static Map<String, Object> parseCommand(CommandType command, ReplayParser reader) {
         CommandFunction commandFunction = COMMAND_PARSERS.get(command);
         if (commandFunction == null) {
-            logger.debug("Command not handled by parser: " + command);
+            LOGGER.debug("Command not handled by parser: {}", command);
             return Collections.emptyMap();
         }
         return commandFunction.parse(reader);

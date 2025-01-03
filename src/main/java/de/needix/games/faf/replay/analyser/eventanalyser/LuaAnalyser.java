@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class LuaAnalyser {
-    private static final Logger logger = LoggerFactory.getLogger(LuaAnalyser.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LuaAnalyser.class);
     private final Replay replayToFill;
     private final ModeratorEventAnalyser moderatorEventAnalyser;
 
@@ -83,7 +83,7 @@ public class LuaAnalyser {
                 handleWeaponPriorities(command, lua);
                 break;
             default:
-                logger.warn("Unknown Lua function: {} : {}", luaName, lua);
+                LOGGER.warn("Unknown Lua function: {} : {}", luaName, lua);
                 break;
         }
     }
@@ -122,7 +122,7 @@ public class LuaAnalyser {
     }
 
     private void handleOnControlGroupAssign(Command command, Map<Object, Object> lua) {
-        logger.trace("OnControlGroupAssign: {}", lua);
+        LOGGER.trace("OnControlGroupAssign: {}", lua);
         /*
         {Float@1491} 1.0 -> "4194312"
         {Float@1493} 2.0 -> "4194307"
@@ -131,7 +131,7 @@ public class LuaAnalyser {
     }
 
     private void handleRebuild(Command command, Map<Object, Object> lua) {
-        logger.trace("Rebuild: {}", lua);
+        LOGGER.trace("Rebuild: {}", lua);
         /*
         "entity" -> "11534342"
         "Clear" -> {Boolean@1494} true
@@ -139,98 +139,98 @@ public class LuaAnalyser {
     }
 
     private void handleRingWithStorages(Command command, Map<Object, Object> lua) {
-        logger.trace("RingWithStorages: {}", lua);
+        LOGGER.trace("RingWithStorages: {}", lua);
         /*
         target -> 11534350
          */
     }
 
     private void handleAttackMove(Command command, Map<Object, Object> lua) {
-        logger.trace("AttackMove: {}", lua);
+        LOGGER.trace("AttackMove: {}", lua);
         /*
         Target={1.0=88.30132, 2.0=63.195312, 3.0=674.70685}, Rotation=216.51114, Clear=false
          */
     }
 
     private void handleToggleSelfDestruct(Command command, Map<Object, Object> lua) {
-        logger.trace("ToggleSelfDestruct: {}", lua);
+        LOGGER.trace("ToggleSelfDestruct: {}", lua);
         /*
         owner=8.0, noDelay=false
          */
     }
 
     private void handleSetRecallVote(Command command, Map<Object, Object> lua) {
-        logger.trace("SetRecallVote: {}", lua);
+        LOGGER.trace("SetRecallVote: {}", lua);
         /*
             Vote=true, From=12.0
          */
     }
 
     private void handleGiveUnitsToPlayer(Command command, Map<Object, Object> lua) {
-        logger.trace("GiveUnitsToPlayer: {}", lua);
+        LOGGER.trace("GiveUnitsToPlayer: {}", lua);
         /*
         To=12.0, From=10.0
          */
     }
 
     private void handleSpawnSpecialPing(Command command, Map<Object, Object> lua) {
-        logger.trace("SpawnSpecialPing: {}", lua);
+        LOGGER.trace("SpawnSpecialPing: {}", lua);
         /*
         Type=nuke, Owner=10.0, Lifetime=10.0, Ring=/textures/ui/common/game/marker/ring_nuke04-blur.dds, ArrowColor=red, Mesh=nuke_marker, Sound=Aeon_Select_Radar, Location={1.0=626.73724, 2.0=63.195312, 3.0=398.43472}
          */
     }
 
     private void handleSpawnPing(Command command, Map<Object, Object> lua) {
-        logger.trace("SpawnPing: {}", lua);
+        LOGGER.trace("SpawnPing: {}", lua);
         /*
         Type=Marker, Owner=2.0, Lifetime=5.0, Ring=/game/marker/ring_yellow02-blur.dds, Color=ff66ffcc, ArrowColor=yellow, Sound=UI_Main_IG_Click, Marker=true, Name=nuke, Location={1.0=624.9585, 2.0=63.195312, 3.0=395.40198}
          */
     }
 
     private void handleImmediateHiveUpgrade(Command command, Map<Object, Object> lua) {
-        logger.trace("ImmediateHiveUpgrade: {}", lua);
+        LOGGER.trace("ImmediateHiveUpgrade: {}", lua);
         /*
         UpgradeTo=xrb0204
          */
     }
 
     private void handleUpdateMarker(Command command, Map<Object, Object> lua) {
-        logger.trace("UpdateMarker: {}", lua);
+        LOGGER.trace("UpdateMarker: {}", lua);
         /*
         Owner=1.0, Action=delete, ID=3.0
          */
     }
 
     private void handleAutoOvercharge(Command command, Map<Object, Object> lua) {
-        logger.trace("AutoOvercharge: {}", lua);
+        LOGGER.trace("AutoOvercharge: {}", lua);
         /*
         auto=true
          */
     }
 
     private void handleDistributeOrders(Command command, Map<Object, Object> lua) {
-        logger.trace("DistributeOrders: {}", lua);
+        LOGGER.trace("DistributeOrders: {}", lua);
         /*
             ClearCommands=true, Target=5242933
          */
     }
 
     private void handleRingWithFabricators(Command command, Map<Object, Object> lua) {
-        logger.trace("RingWithFabricators: {}", lua);
+        LOGGER.trace("RingWithFabricators: {}", lua);
         /*
         allFabricators=true, target=10485835
          */
     }
 
     private void handleValidateAssist(Command command, Map<Object, Object> lua) {
-        logger.trace("ValidateAssist: {}", lua);
+        LOGGER.trace("ValidateAssist: {}", lua);
         /*
         target=6291592
          */
     }
 
     private void handleWeaponPriorities(Command command, Map<Object, Object> lua) {
-        logger.trace("WeaponPriorities: {}", lua);
+        LOGGER.trace("WeaponPriorities: {}", lua);
         /*
             SelectedUnits={1.0=2097350}, prioritiesTable={categories.EXPERIMENTAL}, name=EXP, exclusive=false
          */

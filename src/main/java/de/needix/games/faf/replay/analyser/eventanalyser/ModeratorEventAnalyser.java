@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ModeratorEventAnalyser {
-    private static final Logger logger = LoggerFactory.getLogger(ModeratorEventAnalyser.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModeratorEventAnalyser.class);
 
     private final static Pattern GPG_NET_SEND_PATTERN = Pattern.compile(".*?'(.*?)'.*'(.*)'");
 
@@ -25,7 +25,7 @@ public class ModeratorEventAnalyser {
     }
 
     public void handleModeratorEvent(Command command, Map<Object, Object> lua) {
-        logger.trace("ModeratorEvent: {}", lua);
+        LOGGER.trace("ModeratorEvent: {}", lua);
         String message = lua.get("Message").toString();
         Object from = lua.get("From");
 
@@ -35,7 +35,7 @@ public class ModeratorEventAnalyser {
 
         Matcher matcher = GPG_NET_SEND_PATTERN.matcher(message);
         if (!matcher.find() || matcher.groupCount() != 2) {
-            logger.warn("GpgNetSend message did not match pattern: {}", message);
+            LOGGER.warn("GpgNetSend message did not match pattern: {}", message);
             return;
         }
 
@@ -55,8 +55,8 @@ public class ModeratorEventAnalyser {
                 handleEnforceRating(data);
                 break;
             default:
-                logger.warn("Unknown GpgNetSend command: {}", command);
-                logger.debug("GpgNetSend data: {}", data);
+                LOGGER.warn("Unknown GpgNetSend command: {}", command);
+                LOGGER.debug("GpgNetSend data: {}", data);
                 break;
         }
 
@@ -71,7 +71,7 @@ public class ModeratorEventAnalyser {
     }
 
     private void handleJsonStats(String jsonStats) {
-        logger.debug("JsonStats: {}", jsonStats);
+        LOGGER.debug("JsonStats: {}", jsonStats);
 
         try {
             // Deserialize the incoming JSON string into a list of GameStatDTO
@@ -84,21 +84,21 @@ public class ModeratorEventAnalyser {
 
             this.replayToFill.setPlayerScores(replayPlayerSummaries);
 
-            logger.info("Data successfully sent to REST API");
+            LOGGER.info("Data successfully sent to REST API");
         } catch (Exception e) {
-            logger.error("Failed to process JsonStats: {}", e.getMessage(), e);
+            LOGGER.error("Failed to process JsonStats: {}", e.getMessage(), e);
         }
     }
 
     private void handleGameEnded(String noData) {
-        logger.debug("GameEnded: {}", noData);
+        LOGGER.debug("GameEnded: {}", noData);
     }
 
     private void handleGameResult(String resultData) {
-        logger.debug("GameResult: {}", resultData);
+        LOGGER.debug("GameResult: {}", resultData);
     }
 
     private void handleEnforceRating(String noData) {
-        logger.debug("EnforceRating: {}", noData);
+        LOGGER.debug("EnforceRating: {}", noData);
     }
 }

@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.zip.InflaterInputStream;
 
 public class ReplayAnalyser {
-    private static final Logger logger = LoggerFactory.getLogger(ReplayAnalyser.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReplayAnalyser.class);
     private final File file;
     private final Replay replayToFill;
     private final LuaAnalyser luaAnalyser;
@@ -34,12 +34,12 @@ public class ReplayAnalyser {
     public void analyzeFAFReplay() throws IOException {
         String filePath = file.getAbsolutePath();
         if (!file.exists()) {
-            logger.error("File not found: {}", filePath);
+            LOGGER.error("File not found: {}", filePath);
             return;
         }
 
-        logger.debug("Analyzing file: {}", filePath);
-        logger.debug("File size: {} bytes", file.length());
+        LOGGER.debug("Analyzing file: {}", filePath);
+        LOGGER.debug("File size: {} bytes", file.length());
 
         String jsonHeaderasString = getJsonHeader(file);
         JsonObject jsonHeader = getJsonHeaderAsJsonObject(jsonHeaderasString);
@@ -89,10 +89,10 @@ public class ReplayAnalyser {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
         if ("zstd".equalsIgnoreCase(compression)) {
-            logger.debug("Decompressing with Zstandard...");
+            LOGGER.debug("Decompressing with Zstandard...");
             decompressedStream = new ZstdInputStream(inputStream);
         } else if ("zlib".equalsIgnoreCase(compression) && version == 1) {
-            logger.debug("Decompressing with zlib...");
+            LOGGER.debug("Decompressing with zlib...");
             decompressedStream = new InflaterInputStream(new Base64InputStream(file));
         } else {
             throw new UnsupportedReplayException("Unsupported compression or version: " + compression + ", version: " + version);
@@ -127,7 +127,7 @@ public class ReplayAnalyser {
         if (commandType == CommandType.LUA_SIM_CALLBACK) {
             luaAnalyser.analyzeLua(command);
         }
-        logger.debug("{} {} {} {}", tick, commandType, playerId, commandData);
+        LOGGER.debug("{} {} {} {}", tick, commandType, playerId, commandData);
     }
 
     // Helper class for Base64 decoding
