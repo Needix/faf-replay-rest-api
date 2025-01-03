@@ -250,6 +250,12 @@ public class CommandParser {
         Map<String, Object> result = new HashMap<>();
         result.put("type", "set_command_cells");
         result.put("command_id", reader.readUnsignedInt());
+        /*
+        Example for cells:
+        // ISSUE_COMMAND 1 {entity_ids_set={units_number=1, unit_ids=[1048576]}, cmd_data={arg3=false, arg2=-1, command_id=16777220, arg5=null,
+        arg4=[B@41a6d121, cells={TaskName=EnhanceTask, Enhancement=ResourceAllocationAdvanced}, command_type=28, arg1=-1, formation=null,
+        target={target=0}, blueprint_id=}, type=issue}
+         */
         result.put("cells", reader.readLua(null));
         result.put("vector", readVector(reader));
         return result;
