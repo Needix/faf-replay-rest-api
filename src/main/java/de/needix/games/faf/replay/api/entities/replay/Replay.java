@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Map;
 @Getter
 @Setter
 @Entity
+@ToString
 public class Replay {
     @Id
     private Long id;

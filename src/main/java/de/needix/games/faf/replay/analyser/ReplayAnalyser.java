@@ -9,6 +9,7 @@ import de.needix.games.faf.replay.analyser.parser.CommandType;
 import de.needix.games.faf.replay.analyser.parser.ReplayParser;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
 import de.needix.games.faf.replay.exceptions.UnsupportedReplayException;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.zip.InflaterInputStream;
 
+@ToString
 public class ReplayAnalyser {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayAnalyser.class);
     private final File file;

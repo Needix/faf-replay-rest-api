@@ -7,10 +7,12 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Setter
 @Getter
 @Embeddable
+@ToString
 public class GeneralStats {
     public static final String KILLS_PREFIX = "kills_";
     public static final String LOST_PREFIX = "lost_";

@@ -1,6 +1,7 @@
 package de.needix.games.faf.replay.analyser.parser;
 
 import lombok.Getter;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,10 +9,11 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@ToString
 public class CommandParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandParser.class);
     private static final Map<CommandType, CommandFunction> COMMAND_PARSERS = new HashMap<>();
-    
+
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
 
     static {

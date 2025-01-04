@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.Map;
 
 @Setter
 @Getter
 @Entity
+@ToString
 public class ReplayPlayerSummary {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

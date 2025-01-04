@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.needix.games.faf.replay.analyser.parser.Command;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
 import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@ToString
 public class ModeratorEventAnalyser {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModeratorEventAnalyser.class);
 

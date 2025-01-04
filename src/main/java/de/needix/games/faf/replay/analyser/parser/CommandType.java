@@ -1,8 +1,11 @@
 package de.needix.games.faf.replay.analyser.parser;
 
+import lombok.ToString;
+
 /**
  * Created by Need on 31.12.2024.
  */
+@ToString
 public enum CommandType {
     ADVANCE,
     SET_COMMAND_SOURCE,

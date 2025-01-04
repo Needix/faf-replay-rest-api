@@ -1,6 +1,9 @@
 package de.needix.games.faf.replay.analyser.parser;
 
 import de.needix.games.faf.replay.api.entities.replay.Replay;
+import lombok.ToString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,7 +15,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+@ToString
 public class ReplayParser {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReplayParser.class);
+
     private final ByteArrayInputStream buffer;
     private final Integer bufferSize;
 

@@ -6,10 +6,12 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Setter
 @Getter
 @Embeddable
+@ToString
 public class UnitStats {
     // Prefix constants for different unit types
     public static final String AIR_PREFIX = "air_";

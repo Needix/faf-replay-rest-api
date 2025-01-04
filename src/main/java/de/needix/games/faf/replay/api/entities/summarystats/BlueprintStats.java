@@ -4,10 +4,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Setter
 @Getter
 @Embeddable
+@ToString
 public class BlueprintStats {
     private int kills;
     private int built;

@@ -7,10 +7,12 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @Embeddable
+@ToString
 public class ResourceStats {
     private static final String IN = "in";
     private static final String OUT = "out";

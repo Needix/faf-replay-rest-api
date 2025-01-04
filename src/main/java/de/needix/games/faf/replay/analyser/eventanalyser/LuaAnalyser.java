@@ -3,6 +3,7 @@ package de.needix.games.faf.replay.analyser.eventanalyser;
 import de.needix.games.faf.replay.analyser.parser.Command;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
 import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+@ToString
 public class LuaAnalyser {
     private static final Logger LOGGER = LoggerFactory.getLogger(LuaAnalyser.class);
     private final Replay replayToFill;

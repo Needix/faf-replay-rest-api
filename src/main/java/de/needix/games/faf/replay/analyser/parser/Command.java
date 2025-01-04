@@ -1,6 +1,7 @@
 package de.needix.games.faf.replay.analyser.parser;
 
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Map;
 
@@ -8,6 +9,7 @@ import java.util.Map;
  * Created by Need on 01.01.2025.
  */
 @Getter
+@ToString
 public class Command {
     private final int tick;
     private final CommandType commandType;
@@ -21,16 +23,5 @@ public class Command {
         this.commandType = commandType;
         this.playerId = playerId;
         this.commandData = commandData;
-    }
-
-    @Override
-    public String toString() {
-        return "Command{" +
-                "tick=" + tick +
-                ", commandType=" + commandType +
-                ", playerId=" + playerId +
-                ", commandData=" + commandData +
-                ", isDesyncCommand=" + isDesyncCommand +
-                '}';
     }
 }

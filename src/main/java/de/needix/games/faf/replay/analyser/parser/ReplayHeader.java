@@ -2,9 +2,11 @@ package de.needix.games.faf.replay.analyser.parser;
 
 import de.needix.games.faf.replay.api.entities.replay.Replay;
 import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
+import lombok.ToString;
 
 import java.util.HashMap;
 
+@ToString
 public class ReplayHeader {
     private final Replay replayToFill;
 

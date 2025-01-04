@@ -6,10 +6,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Setter
 @Getter
+@ToString
 public class ReplayChatMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,4 +22,6 @@ public class ReplayChatMessage {
     private String receiver;
     private String message;
     private boolean isMarker;
+
+
 }
