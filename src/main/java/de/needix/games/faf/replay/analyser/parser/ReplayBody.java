@@ -46,7 +46,7 @@ public class ReplayBody {
         byte[] commandTypeByte = replayReader.read(1);
         byte[] commandLengthByte = replayReader.read(2);
 
-        CommandType command = CommandType.values()[Byte.toUnsignedInt(commandTypeByte[0])];
+        CommandType command = CommandType.getFromIndex(Byte.toUnsignedInt(commandTypeByte[0]));
         int commandLength = Byte.toUnsignedInt(commandLengthByte[1]) << 8 | Byte.toUnsignedInt(commandLengthByte[0]);
 
         int bytesToRead = commandLength - 3;

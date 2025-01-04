@@ -27,5 +27,11 @@ public enum CommandType {
     DEBUG_COMMAND,
     EXECUTE_LUA_IN_SIM,
     LUA_SIM_CALLBACK,
-    END_GAME
+    END_GAME;
+
+    private static final CommandType[] VALUES = values();
+
+    public static CommandType getFromIndex(int index) {
+        return VALUES[index];
+    }
 }
