@@ -63,15 +63,13 @@ public class ReplayController {
                     .body("Failed to download replay with ID " + replayId + ": " + e.getMessage());
         }
 
-        Replay createdReplay = new Replay();
+        Replay createdReplay;
         try {
-            new ReplayAnalyser(file, createdReplay).analyzeFAFReplay();
+            createdReplay = createDatabaseReplayEntity(file);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to analyze replay with ID " + replayId + ": " + e.getMessage());
         }
-
-        replayRepository.save(createdReplay);
 
         return ResponseEntity.ok(createdReplay);
     }
@@ -86,6 +84,22 @@ public class ReplayController {
                     );
         }
         return true;
+    }
+
+    private Replay createDatabaseReplayEntity(File file) throws IOException {
+        // Analyze the replay file
+        Replay replay = new Replay();
+        new ReplayAnalyser(file, replay).analyzeFAFReplay();
+
+        // Save to repository
+        try {
+            replayRepository.save(replay);
+        } catch (Exception e) {
+            LOGGER.error("Failed to save replay to database: {}", e.getMessage(), e);
+            throw e;
+        }
+
+        return replay;
     }
 
     @GetMapping("/ids")
@@ -161,12 +175,7 @@ public class ReplayController {
                     return;
                 }
 
-                // Analyze the replay file
-                Replay replay = new Replay();
-                new ReplayAnalyser(file, replay).analyzeFAFReplay();
-
-                // Save to repository
-                replayRepository.save(replay);
+                createDatabaseReplayEntity(file);
 
                 LOGGER.debug("Successfully processed replay file: {}", file.getName());
                 Files.delete(file.toPath());
