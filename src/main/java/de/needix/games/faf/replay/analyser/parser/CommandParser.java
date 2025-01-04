@@ -8,8 +8,9 @@ import java.util.*;
 
 public class CommandParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandParser.class);
-
     private static final Map<CommandType, CommandFunction> COMMAND_PARSERS = new HashMap<>();
+    
+    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
 
     static {
         COMMAND_PARSERS.put(CommandType.ADVANCE, CommandParser::commandAdvance);
@@ -69,13 +70,16 @@ public class CommandParser {
     }
 
     public static Map<String, Object> commandVerifyChecksum(ReplayParser reader) {
-        StringBuilder checksum = new StringBuilder();
+        char[] checksumChars = new char[32]; // Each byte produces 2 hex chars
         for (int i = 0; i < 16; i++) {
-            checksum.append(String.format("%02X", reader.readByte()));
+            byte value = ((Integer) reader.readByte()).byteValue();
+            checksumChars[i * 2] = HEX_ARRAY[(value >> 4) & 0xF]; // High nibble
+            checksumChars[i * 2 + 1] = HEX_ARRAY[value & 0xF]; // Low nibble
         }
+        String checksum = new String(checksumChars);
         Map<String, Object> result = new HashMap<>();
         result.put("type", "verify_checksum");
-        result.put("checksum", checksum.toString());
+        result.put("checksum", checksum);
         result.put("tick", reader.readUnsignedInt());
         return result;
     }
