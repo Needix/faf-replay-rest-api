@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class CommandParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandParser.class);
@@ -350,6 +352,8 @@ public class CommandParser {
         UNITCOMMAND_SpecialAction(38),
         UNITCOMMAND_Dock(39);
 
+        private static final Map<Integer, UnitCommandType> ENUM_MAP = Arrays.stream(UnitCommandType.values())
+                .collect(Collectors.toMap(UnitCommandType::getValue, Function.identity()));
         // Getter to retrieve the integer value.
         private final int value;
 
@@ -358,16 +362,13 @@ public class CommandParser {
             this.value = value;
         }
 
-        // Method to convert integer to corresponding enum.
         public static UnitCommandType fromValue(int value) {
-            for (UnitCommandType commandType : values()) {
-                if (commandType.value == value) {
-                    return commandType;
-                }
+            UnitCommandType commandType = ENUM_MAP.get(value);
+            if (commandType == null) {
+                throw new IllegalArgumentException("Unknown value: " + value);
             }
-            throw new IllegalArgumentException("Unknown value: " + value);
+            return commandType;
         }
-
     }
 
     public interface CommandFunction {
