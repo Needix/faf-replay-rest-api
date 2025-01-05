@@ -42,6 +42,7 @@ public class ReplayBody {
             Command command = parseCommandAndGetData();
             commandConsumer.accept(command);
         }
+        LOGGER.debug("Parsed {} commands", tick);
     }
 
     private Command parseCommandAndGetData() {

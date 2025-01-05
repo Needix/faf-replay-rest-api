@@ -32,6 +32,7 @@ public class ModeratorEventAnalyser {
         Object from = lua.get("From");
 
         if (!message.startsWith("GpgNetSend")) {
+            LOGGER.warn("Ignoring moderator event message which does not start with 'GpgNetSend': {}", message);
             return;
         }
 
@@ -83,6 +84,8 @@ public class ModeratorEventAnalyser {
                     new TypeReference<>() {
                     }
             );
+            
+            LOGGER.debug("Deserialized replay player summaries: {}", replayPlayerSummaries);
 
             this.replayToFill.setPlayerScores(replayPlayerSummaries);
 

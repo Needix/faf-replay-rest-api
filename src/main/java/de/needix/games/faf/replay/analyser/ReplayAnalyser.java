@@ -129,7 +129,7 @@ public class ReplayAnalyser {
         if (commandType == CommandType.LUA_SIM_CALLBACK) {
             luaAnalyser.analyzeLua(command);
         }
-        LOGGER.debug("{} {} {} {}", tick, commandType, playerId, commandData);
+        LOGGER.debug("Analysing command: {} {} {} {}", tick, commandType, playerId, commandData);
     }
 
     // Helper class for Base64 decoding

@@ -111,11 +111,13 @@ public class LuaAnalyser {
             if (fromPlayer != null) {
                 fromPlayer.increaseEnergyShared(energy);
                 fromPlayer.increaseMassShared(mass);
+                LOGGER.debug("Increased energy and mass shared by player {} by {} and {} respectively", fromId, energy, mass);
             }
             ReplayPlayer toPlayer = replayToFill.getPlayers().get(toId);
             if (toPlayer != null) {
                 toPlayer.increaseMassReceived(mass);
                 toPlayer.increaseEnergyReceived(energy);
+                LOGGER.debug("Increased energy and mass received of player {} by {} and {} respectively", toId, energy, mass);
             }
         }
     }

@@ -14,8 +14,6 @@ public class ChatAnalyser {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChatAnalyser.class);
 
     public static void handleChat(Command command, Replay replayToFill, Map<String, Object> message, String senderName) {
-        LOGGER.trace("Chat message received: {}, from: {}", message, senderName);
-
         String to = message.get("to").toString(); // allies notify name
         int playerId = command.getPlayerId();
 
@@ -39,5 +37,7 @@ public class ChatAnalyser {
         replayChatMessage.setMarker(message.get("camera") != null);
 
         replayToFill.getChatMessages().add(replayChatMessage);
+
+        LOGGER.debug("Created chat message: {}", replayChatMessage);
     }
 }

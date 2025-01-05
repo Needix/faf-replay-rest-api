@@ -46,9 +46,10 @@ public class CommandParser {
     public static Map<String, Object> parseCommand(CommandType command, ReplayParser reader) {
         CommandFunction commandFunction = COMMAND_PARSERS.get(command);
         if (commandFunction == null) {
-            LOGGER.debug("Command not handled by parser: {}", command);
+            LOGGER.warn("Command not handled by parser: {}", command);
             return Collections.emptyMap();
         }
+        LOGGER.debug("Parsing command by {}: {}", command, commandFunction);
         return commandFunction.parse(reader);
     }
 
