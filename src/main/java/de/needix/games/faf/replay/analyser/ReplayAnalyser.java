@@ -122,9 +122,6 @@ public class ReplayAnalyser {
         CommandType commandType = command.getCommandType();
         Map<String, Object> commandData = command.getCommandData();
         int playerId = command.getPlayerId();
-        if (commandType == CommandType.ADVANCE || commandType == CommandType.SET_COMMAND_SOURCE || commandType == CommandType.VERIFY_CHECKSUM || commandType == CommandType.RESUME || commandType == CommandType.PROCESS_INFO_PAIR) {
-            return;
-        }
 
         if (commandType == CommandType.LUA_SIM_CALLBACK) {
             luaAnalyser.analyzeLua(command);
