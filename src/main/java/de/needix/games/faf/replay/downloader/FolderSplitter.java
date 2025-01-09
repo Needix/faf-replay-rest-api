@@ -6,7 +6,7 @@ public class FolderSplitter {
 
     public static void main(String[] args) {
         // Path to the source folder containing the files
-        String sourceFolderPath = "Z:\\replays\\";
+        String sourceFolderPath = "Z:\\";
 
         // Maximum number of files per subfolder
         int maxFilesPerFolder = 100000;
@@ -33,9 +33,16 @@ public class FolderSplitter {
         System.out.println("Total files to process: " + files.length);
 
         int folderIndex = 0;
-        int fileCount = 0;
 
         File currentSubfolder = createSubfolder(sourceFolder, folderIndex);
+        File[] filesInCurrentSubfolder = currentSubfolder.listFiles();
+        int fileCount = filesInCurrentSubfolder == null ? 0 : filesInCurrentSubfolder.length;
+        while (fileCount >= maxFilesPerFolder) {
+            folderIndex++;
+            currentSubfolder = createSubfolder(sourceFolder, folderIndex);
+            filesInCurrentSubfolder = currentSubfolder.listFiles();
+            fileCount = filesInCurrentSubfolder == null ? 0 : filesInCurrentSubfolder.length;
+        }
 
         for (File file : files) {
             if (fileCount >= maxFilesPerFolder) {
