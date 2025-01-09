@@ -4,8 +4,6 @@ import com.github.luben.zstd.ZstdInputStream;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.needix.games.faf.replay.analyser.eventanalyser.LuaAnalyser;
-import de.needix.games.faf.replay.analyser.parser.Command;
-import de.needix.games.faf.replay.analyser.parser.CommandType;
 import de.needix.games.faf.replay.analyser.parser.ReplayParser;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
 import de.needix.games.faf.replay.exceptions.UnsupportedReplayException;
@@ -16,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Base64;
-import java.util.Map;
 import java.util.Objects;
 import java.util.zip.InflaterInputStream;
 

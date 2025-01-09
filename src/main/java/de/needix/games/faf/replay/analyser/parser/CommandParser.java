@@ -49,7 +49,6 @@ public class CommandParser {
             LOGGER.warn("Command not handled by parser: {}", command);
             return Collections.emptyMap();
         }
-        LOGGER.debug("Parsing command by {}: {}", command, commandFunction);
         return commandFunction.parse(reader);
     }
 
@@ -180,7 +179,7 @@ public class CommandParser {
         Map<String, Object> result = new HashMap<>();
         result.put("command_id", reader.readInt());
         result.put("arg1", reader.readInt());
-        result.put("command_type", UnitCommandType.fromValue(reader.readByte()));
+        result.put("command_type", CommandOrderType.fromValue(reader.readByte()));
         result.put("arg2", reader.readInt());
         result.put("target", parseTarget(reader));
         result.put("arg3", reader.readBool());
@@ -313,7 +312,7 @@ public class CommandParser {
     // Additional helper methods for parsing targets, formations, etc., can be added here.
 
     @Getter
-    private enum UnitCommandType {
+    public enum CommandOrderType {
         UNITCOMMAND_None(0),
         UNITCOMMAND_Stop(1),
         UNITCOMMAND_Move(2),
@@ -355,18 +354,18 @@ public class CommandParser {
         UNITCOMMAND_SpecialAction(38),
         UNITCOMMAND_Dock(39);
 
-        private static final Map<Integer, UnitCommandType> ENUM_MAP = Arrays.stream(UnitCommandType.values())
-                .collect(Collectors.toMap(UnitCommandType::getValue, Function.identity()));
+        private static final Map<Integer, CommandOrderType> ENUM_MAP = Arrays.stream(CommandOrderType.values())
+                .collect(Collectors.toMap(CommandOrderType::getValue, Function.identity()));
         // Getter to retrieve the integer value.
         private final int value;
 
         // Constructor to assign integer values.
-        UnitCommandType(int value) {
+        CommandOrderType(int value) {
             this.value = value;
         }
 
-        public static UnitCommandType fromValue(int value) {
-            UnitCommandType commandType = ENUM_MAP.get(value);
+        public static CommandOrderType fromValue(int value) {
+            CommandOrderType commandType = ENUM_MAP.get(value);
             if (commandType == null) {
                 throw new IllegalArgumentException("Unknown value: " + value);
             }

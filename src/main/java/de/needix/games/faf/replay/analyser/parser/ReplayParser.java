@@ -1,5 +1,6 @@
 package de.needix.games.faf.replay.analyser.parser;
 
+import de.needix.games.faf.replay.analyser.eventanalyser.*;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
 import lombok.ToString;
 import org.slf4j.Logger;
@@ -11,9 +12,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 @ToString
 public class ReplayParser {
@@ -26,15 +28,20 @@ public class ReplayParser {
     private final ReplayBody replayBody;
     private final Replay replayToFill;
 
-    public ReplayParser(byte[] inputData, Replay replayToFill, Consumer<Command> commandConsumer) {
+    public ReplayParser(byte[] inputData, Replay replayToFill) {
         this.buffer = new ByteArrayInputStream(inputData);
         this.bufferSize = inputData.length;
 
         this.replayToFill = replayToFill;
 
+        ApmAnalyser apmAnalyser = new ApmAnalyser(replayToFill);
+        MoveOrderAnalyser moveOrderAnalyser = new MoveOrderAnalyser(replayToFill);
+        LuaAnalyser luaAnalyser = new LuaAnalyser(replayToFill);
+        List<CommandAnalyser> commandConsumers = Arrays.asList(new CommandLogger(), luaAnalyser, apmAnalyser, moveOrderAnalyser);
+
         this.replayHeader = new ReplayHeader(this, replayToFill);
         this.replayBody = new ReplayBody(this, replayToFill);
-        this.replayBody.parse(commandConsumer);
+        this.replayBody.parse(commandConsumers);
     }
 
     public String readString() {

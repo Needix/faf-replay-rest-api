@@ -1,14 +1,15 @@
 package de.needix.games.faf.replay.analyser.parser;
 
 
+import de.needix.games.faf.replay.analyser.eventanalyser.CommandAnalyser;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
 import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 @ToString
 public class ReplayBody {
@@ -36,13 +37,14 @@ public class ReplayBody {
         this.previousChecksum = null;
     }
 
-    public void parse(Consumer<Command> commandConsumer) {
+    public void parse(List<CommandAnalyser> commandConsumers) {
         int replayBufferSize = replayReader.size();
         while (replayReader.offset() + 3 <= replayBufferSize) {
             Command command = parseCommandAndGetData();
-            commandConsumer.accept(command);
+            commandConsumers.forEach(consumer -> consumer.analyseCommand(command));
         }
-        LOGGER.debug("Parsed {} commands", tick);
+        commandConsumers.forEach(CommandAnalyser::finalizeAnalysis);
+        LOGGER.debug("Parsed all commands");
     }
 
     private Command parseCommandAndGetData() {
