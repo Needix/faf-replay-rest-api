@@ -31,11 +31,31 @@ public class ModeratorEventAnalyser {
         String message = lua.get("Message").toString();
         Object from = lua.get("From");
 
-        if (!message.startsWith("GpgNetSend")) {
+        if (message.startsWith("GpgNetSend")) {
+            analyseGpgNetSendMessage(command, message);
+        } else if (message.startsWith("Created a marker with the text: '")) {
+            String text = message.substring(33, message.length() - 1);
+//            ChatAnalyser.handleChat(command, replayToFill, Map.of("text", text, "to", "all"), from.toString());
+
+        } else if (message.startsWith("Created a ping of type ")) {
+            String pingType = message.substring(24, message.length() - 1);
+
+        } else {
             LOGGER.warn("Ignoring moderator event message which does not start with 'GpgNetSend': {}", message);
-            return;
         }
 
+
+        /*
+            Message=Self-destructed 1 units, From=8.0
+            Message=Created a marker with the text: 'anti tele', From=3.0
+            Message=GpgNetSend with command 'EnforceRating' and data '', From=2.0
+            Message=GpgNetSend with command 'GameResult' and data '4,defeat -10,', From=1.0
+            Message=GpgNetSend with command 'JsonStats' and data '...', From=1.0
+            Message=GpgNetSend with command 'GameEnded' and data '', From=12.0
+         */
+    }
+
+    private void analyseGpgNetSendMessage(Command command, String message) {
         Matcher matcher = GPG_NET_SEND_PATTERN.matcher(message);
         if (!matcher.find() || matcher.groupCount() != 2) {
             LOGGER.warn("GpgNetSend message did not match pattern: {}", message);
@@ -62,15 +82,6 @@ public class ModeratorEventAnalyser {
                 LOGGER.debug("GpgNetSend data: {}", data);
                 break;
         }
-
-        /*
-            Message=Self-destructed 1 units, From=8.0
-            Message=Created a marker with the text: 'anti tele', From=3.0
-            Message=GpgNetSend with command 'EnforceRating' and data '', From=2.0
-            Message=GpgNetSend with command 'GameResult' and data '4,defeat -10,', From=1.0
-            Message=GpgNetSend with command 'JsonStats' and data '...', From=1.0
-            Message=GpgNetSend with command 'GameEnded' and data '', From=12.0
-         */
     }
 
     private void handleJsonStats(String jsonStats) {
@@ -84,12 +95,10 @@ public class ModeratorEventAnalyser {
                     new TypeReference<>() {
                     }
             );
-            
+
             LOGGER.debug("Deserialized replay player summaries: {}", replayPlayerSummaries);
 
             this.replayToFill.setPlayerScores(replayPlayerSummaries);
-
-            LOGGER.info("Data successfully sent to REST API");
         } catch (Exception e) {
             LOGGER.error("Failed to process JsonStats: {}", e.getMessage(), e);
         }
