@@ -4,7 +4,9 @@ import de.needix.games.faf.replay.api.entities.replay.Replay;
 import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 
 @ToString
 public class ReplayHeader {
@@ -50,14 +52,13 @@ public class ReplayHeader {
         int numberOfArmies = reader.readByte();
 
         // Read armies data
-        HashMap<Object, Object> armies = new HashMap<>();
         for (int i = 0; i < numberOfArmies; i++) {
             reader.readUnsignedInt();// player_data_size
-            Object playerData = reader.readLua(null);
+            Map<String, Serializable> playerData = (Map<String, Serializable>) reader.readLua(null);
             int playerSource = reader.readByte();
-            armies.put(playerSource, playerData);
 
             if (playerSource != 255) {
+                players.get(playerSource + 1).setArmyInformation(playerData);
                 reader.read(1); // Skip 1 byte
             }
         }

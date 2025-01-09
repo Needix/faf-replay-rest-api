@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.Map;
+
 @Getter
 @Setter
 @Embeddable
@@ -75,6 +77,16 @@ public class ResourceStats {
     })
     private StorageStats storage;
 
+    public Map<String, Object> toMap() {
+        return Map.of(
+                "massIn", massIn != null ? massIn.toMap() : null,
+                "massOut", massOut != null ? massOut.toMap() : null,
+                "energyIn", energyIn != null ? energyIn.toMap() : null,
+                "energyOut", energyOut != null ? energyOut.toMap() : null,
+                "storage", storage != null ? storage.toMap() : null
+        );
+    }
+
     @Getter
     @Setter
     @Embeddable
@@ -83,6 +95,15 @@ public class ResourceStats {
         private double reclaimed;
         private double reclaimRate;
         private double rate;
+
+        public Map<String, Object> toMap() {
+            return Map.of(
+                    "total", total,
+                    "reclaimed", reclaimed,
+                    "reclaimRate", reclaimRate,
+                    "rate", rate
+            );
+        }
     }
 
     @Getter
@@ -92,6 +113,14 @@ public class ResourceStats {
         private double total;
         private double rate;
         private double excess;
+
+        public Map<String, Object> toMap() {
+            return Map.of(
+                    "total", total,
+                    "rate", rate,
+                    "excess", excess
+            );
+        }
     }
 
     @Getter
@@ -102,5 +131,14 @@ public class ResourceStats {
         private double storedMass;
         private double maxEnergy;
         private double storedEnergy;
+
+        public Map<String, Object> toMap() {
+            return Map.of(
+                    "maxMass", maxMass,
+                    "storedMass", storedMass,
+                    "maxEnergy", maxEnergy,
+                    "storedEnergy", storedEnergy
+            );
+        }
     }
 }

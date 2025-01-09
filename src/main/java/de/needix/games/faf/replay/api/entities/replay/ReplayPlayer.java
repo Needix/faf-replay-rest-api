@@ -6,8 +6,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 @Setter
 @Getter
 @Entity
@@ -23,6 +27,9 @@ public class ReplayPlayer {
     private double energyShared;
     private double massReceived;
     private double energyReceived;
+
+    @ElementCollection
+    private Map<String, Serializable> armyInformation = new HashMap<>();
 
     @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     @Setter(AccessLevel.NONE)
