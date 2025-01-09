@@ -16,14 +16,14 @@ public class ReplayDownloader {
     public static final long RETRY_DELAY_MS = 1000; // Delay in milliseconds between retries
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayDownloader.class);
 
-    public static File downloadReplay(long replayId) throws IOException, ReplayNotFoundException {
-        ensureDirectoryExists();
+    public static File downloadReplay(String downloadDirectory, long replayId) throws IOException, ReplayNotFoundException {
+        ensureDirectoryExists(downloadDirectory);
 
         String fileName = "replay-" + replayId + FILE_EXTENSION;
-        File outputFile = new File(DOWNLOAD_DIRECTORY, fileName).getCanonicalFile();
+        File outputFile = new File(downloadDirectory, fileName).getCanonicalFile();
 
         // Validate that outputFile is inside the base directory
-        String baseCanonicalPath = new File(DOWNLOAD_DIRECTORY).getCanonicalPath();
+        String baseCanonicalPath = new File(downloadDirectory).getCanonicalPath();
         if (!outputFile.getPath().startsWith(baseCanonicalPath)) {
             throw new SecurityException("Path traversal attempt detected.");
         }
@@ -100,10 +100,10 @@ public class ReplayDownloader {
         }
     }
 
-    private static void ensureDirectoryExists() throws FileNotFoundException {
-        File dir = new File(DOWNLOAD_DIRECTORY);
+    private static void ensureDirectoryExists(String downloadDirectory) throws FileNotFoundException {
+        File dir = new File(downloadDirectory);
         if (!dir.exists() && !dir.mkdirs()) {
-            throw new FileNotFoundException("Failed to create base download directory: " + DOWNLOAD_DIRECTORY);
+            throw new FileNotFoundException("Failed to create base download directory: " + downloadDirectory);
         }
     }
 }

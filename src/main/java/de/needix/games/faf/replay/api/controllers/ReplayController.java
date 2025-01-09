@@ -58,7 +58,7 @@ public class ReplayController {
 
         File file;
         try {
-            file = ReplayDownloader.downloadReplay(replayId);
+            file = ReplayDownloader.downloadReplay(ReplayDownloader.DOWNLOAD_DIRECTORY, replayId);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to download replay with ID " + replayId + ": " + e.getMessage());
