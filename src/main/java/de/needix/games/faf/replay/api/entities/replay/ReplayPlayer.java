@@ -1,5 +1,6 @@
 package de.needix.games.faf.replay.api.entities.replay;
 
+import de.needix.games.faf.replay.api.entities.order.TargetOrder;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,6 +27,9 @@ public class ReplayPlayer {
     @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     @Setter(AccessLevel.NONE)
     private List<ReplayPlayerApm> apmPerMinute = new ArrayList<>();
+    @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    @Setter(AccessLevel.NONE)
+    private List<TargetOrder> targetOrders = new ArrayList<>();
 
     public void addApmPerMinute(int minute, double apm) {
         ReplayPlayerApm replayPlayerApm = new ReplayPlayerApm();
@@ -33,6 +37,10 @@ public class ReplayPlayer {
         replayPlayerApm.setApm(apm);
 
         apmPerMinute.add(replayPlayerApm);
+    }
+
+    public void addTargetOrder(TargetOrder targetOrder) {
+        targetOrders.add(targetOrder);
     }
 
     public void increaseMassShared(double amount) {
