@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -100,6 +101,48 @@ public class ReplayController {
         }
 
         return replay;
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<?> uploadReplay(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No file was uploaded.");
+        }
+
+        if (!Objects.requireNonNull(file.getOriginalFilename()).endsWith(".fafreplay")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid file type. Only .fafreplay files are allowed.");
+        }
+
+        // Define a temporary directory to save uploaded files
+        Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
+        Path tempFile;
+
+        try {
+            // Save the file temporarily
+            tempFile = Files.createTempFile(tempDir, "replay_", ".fafreplay");
+            file.transferTo(tempFile.toFile());
+        } catch (IOException e) {
+            LOGGER.error("Failed to save uploaded file: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process the uploaded file.");
+        }
+
+        // Analyze the replay file and save to database
+        Replay replay;
+        try {
+            replay = createDatabaseReplayEntity(tempFile.toFile());
+        } catch (IOException e) {
+            LOGGER.error("Failed to analyze and save replay: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to analyze or save replay data.");
+        } finally {
+            // Clean up temporary file
+            try {
+                Files.delete(tempFile);
+            } catch (IOException e) {
+                LOGGER.warn("Failed to delete temporary file: {}", tempFile);
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(replay);
     }
 
     @GetMapping("/ids")
