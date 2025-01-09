@@ -1,6 +1,7 @@
 package de.needix.games.faf.replay.analyser.eventanalyser;
 
 import de.needix.games.faf.replay.analyser.parser.Command;
+import de.needix.games.faf.replay.analyser.parser.CommandType;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
 import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
 import lombok.ToString;
@@ -93,6 +94,12 @@ public class LuaAnalyser implements CommandAnalyser {
                 break;
             case "WeaponPriorities":
                 handleWeaponPriorities(command, lua);
+                break;
+            case "RingRadar":
+                handleRingRadar(command, lua);
+                break;
+            case "RingArtilleryTech2":
+                handleRingArtilleryTech2(command, lua);
                 break;
             default:
                 LOGGER.warn("Unknown Lua function: {} : {}", luaName, lua);
@@ -257,5 +264,12 @@ public class LuaAnalyser implements CommandAnalyser {
         /*
             SelectedUnits={1.0=2097350}, prioritiesTable={categories.EXPERIMENTAL}, name=EXP, exclusive=false
          */
+    }
+
+    private void handleRingRadar(Command command, Map<Object, Object> lua) {
+
+    }
+
+    private void handleRingArtilleryTech2(Command command, Map<Object, Object> lua) {
     }
 }
