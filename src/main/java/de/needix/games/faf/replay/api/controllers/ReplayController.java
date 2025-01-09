@@ -29,6 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/api/v1/replays")
 public class ReplayController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayController.class);
