@@ -62,11 +62,12 @@ public class ReplayAnalyser {
         replayToFill.setRecorder(jsonHeader.get("recorder").getAsString());
 
         // Read the rest of the file
+        byte[] decompressedData;
         try (InputStream inputStream = Files.newInputStream(file.toPath())) {
             inputStream.skip(jsonHeaderasString.length() + 1); // Skip the header and newline
-            byte[] decompressedData = decompressData(file, inputStream, compression, replayVersion);
-            analyseByteData(decompressedData, replayToFill);
+            decompressedData = decompressData(file, inputStream, compression, replayVersion);
         }
+        new ReplayParser(decompressedData, replayToFill);
     }
 
     private String getJsonHeader(File file) throws IOException {
@@ -107,26 +108,6 @@ public class ReplayAnalyser {
         }
         decompressedStream.close();
         return byteArrayOutputStream.toByteArray();
-    }
-
-    private void analyseByteData(byte[] data, Replay replayToFill) {
-        Objects.requireNonNull(data, "data must not be null");
-
-        new ReplayParser(data, replayToFill, this::commandCallback);
-    }
-
-    private void commandCallback(Command command) {
-        Objects.requireNonNull(command, "command must not be null");
-
-        int tick = command.getTick();
-        CommandType commandType = command.getCommandType();
-        Map<String, Object> commandData = command.getCommandData();
-        int playerId = command.getPlayerId();
-
-        if (commandType == CommandType.LUA_SIM_CALLBACK) {
-            luaAnalyser.analyzeLua(command);
-        }
-        LOGGER.debug("Analysing command: {} {} {} {}", tick, commandType, playerId, commandData);
     }
 
     // Helper class for Base64 decoding

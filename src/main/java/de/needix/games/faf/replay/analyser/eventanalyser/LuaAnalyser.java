@@ -12,7 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @ToString
-public class LuaAnalyser {
+public class LuaAnalyser implements CommandAnalyser {
     private static final Logger LOGGER = LoggerFactory.getLogger(LuaAnalyser.class);
     private final Replay replayToFill;
     private final ModeratorEventAnalyser moderatorEventAnalyser;
@@ -22,7 +22,12 @@ public class LuaAnalyser {
         this.moderatorEventAnalyser = new ModeratorEventAnalyser(replayToFill);
     }
 
-    public void analyzeLua(Command command) {
+    @Override
+    public void analyseCommand(Command command) {
+        if (command.getCommandType() != CommandType.LUA_SIM_CALLBACK) {
+            return;
+        }
+
         Map<String, Object> commandData = command.getCommandData();
         Object luaObject = commandData.get("lua");
         if (!(luaObject instanceof Map)) {
@@ -93,6 +98,11 @@ public class LuaAnalyser {
                 LOGGER.warn("Unknown Lua function: {} : {}", luaName, lua);
                 break;
         }
+    }
+
+    @Override
+    public void finalizeAnalysis() {
+
     }
 
     private void handleGiveResourcesToPlayer(Command command, Map<Object, Object> lua) {
