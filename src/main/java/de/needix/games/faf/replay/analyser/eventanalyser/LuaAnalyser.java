@@ -101,6 +101,30 @@ public class LuaAnalyser implements CommandAnalyser {
             case "RingArtilleryTech2":
                 handleRingArtilleryTech2(command, lua);
                 break;
+            case "FlagShield":
+                handleFlagShield(command, lua);
+                break;
+            case "ClearCommands":
+                handleClearCommands(command, lua);
+                break;
+            case "SetResourceSharing":
+                handleSetResourceSharing(command, lua);
+                break;
+            case "CheatSpawnUnit":
+                handleCheatSpawnUnit(command, lua);
+                break;
+            case "ExtendAttackOrder":
+                handleExtendAttackOrder(command, lua);
+                break;
+            case "SelectHighestEngineerAndAssist":
+                handleSelectHighestEngineerAndAssist(command, lua);
+                break;
+            case "AbortNavigation":
+                handleAbortNavigation(command, lua);
+                break;
+            case "RingArtilleryTech3Exp":
+                handleRingArtilleryTech3Exp(command, lua);
+                break;
             default:
                 LOGGER.warn("Unknown Lua function: {} : {}", luaName, lua);
                 break;
@@ -271,5 +295,37 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleRingArtilleryTech2(Command command, Map<Object, Object> lua) {
+    }
+
+    private void handleFlagShield(Command command, Map<Object, Object> lua) {
+        // {target=150}
+    }
+
+    private void handleClearCommands(Command command, Map<Object, Object> lua) {
+        // {ids={}}
+    }
+
+    private void handleSetResourceSharing(Command command, Map<Object, Object> lua) {
+        // {Army=4.0, Value=false}
+    }
+
+    private void handleCheatSpawnUnit(Command command, Map<Object, Object> lua) {
+        // {rand=0.0, army=1.0, pos={1.0=394.5, 2.0=74.259766, 3.0=962.5}, bpId=xrl0302, veterancy=0.0, count=1.0, yaw=6.283185}
+    }
+
+    private void handleExtendAttackOrder(Command command, Map<Object, Object> lua) {
+        // {Origin={1.0=968.8932, 2.0=17.5, 3.0=570.55066}, Radius=4.2142015}
+    }
+
+    private void handleSelectHighestEngineerAndAssist(Command command, Map<Object, Object> lua) {
+        //{TargetId=9437213}
+    }
+
+    private void handleAbortNavigation(Command command, Map<Object, Object> lua) {
+        // {}
+    }
+
+    private void handleRingArtilleryTech3Exp(Command command, Map<Object, Object> lua) {
+        // {target=7340072}
     }
 }
