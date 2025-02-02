@@ -47,7 +47,8 @@ public class ReplayPlayer {
     }
 
     public void addTargetOrder(TargetOrder targetOrder) {
-        targetOrders.add(targetOrder);
+        // XXX: Currently disabled to reduce database size (x4)
+        // targetOrders.add(targetOrder);
     }
 
     public void increaseMassShared(double amount) {
