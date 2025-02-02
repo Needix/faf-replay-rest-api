@@ -71,7 +71,7 @@ public class ReplayDownloader {
                     url = new URL(newUrl); // Update URL to the new location
 
                 } else if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
-                    throw new ReplayNotFoundException(MessageFormat.format("The replay with id \"{}\" was not available!", replayId));
+                    throw new ReplayNotFoundException(MessageFormat.format("The replay with id \"{0}\" was not available!", replayId));
 
                 } else if (responseCode == 429) {
                     try {
