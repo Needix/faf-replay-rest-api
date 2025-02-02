@@ -1,5 +1,6 @@
 package de.needix.games.faf.replay.api.entities.replay;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import de.needix.games.faf.replay.api.entities.chat.ReplayChatMessage;
 import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
 import jakarta.persistence.Entity;
@@ -28,6 +29,12 @@ public class Replay {
     private String replayCompression;
     private boolean complete;
     private String featuredMod;
+    /**
+     * 0: assination
+     * 1: domination
+     * 2: sandbox
+     * 2: sandbox
+     */
     private String gameType;
     private Long gameStart;
     private Long gameEnd;
@@ -50,4 +57,18 @@ public class Replay {
     @ElementCollection
     @Lob
     private Map<String, Serializable> scenarioInformation = new HashMap<>();
+
+    @JsonGetter("gameType")
+    public String getGameType() {
+        if (gameType == null) {
+            return null;
+        } else if (gameType.equals("0")) {
+            return "assassination";
+        } else if (gameType.equals("1")) {
+            return "domination";
+        } else if (gameType.equals("2") || gameType.equals("3")) {
+            return "sandbox";
+        }
+        return "unknown";
+    }
 }
