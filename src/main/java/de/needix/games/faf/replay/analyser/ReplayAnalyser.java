@@ -31,6 +31,8 @@ public class ReplayAnalyser {
     }
 
     public void analyzeFAFReplay() throws IOException {
+        long startTime = System.currentTimeMillis();
+
         String filePath = file.getAbsolutePath();
         if (!file.exists()) {
             LOGGER.error("File not found: {}", filePath);
@@ -65,6 +67,9 @@ public class ReplayAnalyser {
             decompressedData = decompressData(file, inputStream, compression, replayVersion);
         }
         new ReplayParser(decompressedData, replayToFill);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Parsed replay in {} ms", System.currentTimeMillis() - startTime);
+        }
     }
 
     private String getJsonHeader(File file) throws IOException {
