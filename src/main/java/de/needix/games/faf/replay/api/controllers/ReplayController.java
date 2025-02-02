@@ -39,71 +39,6 @@ public class ReplayController {
     @Autowired
     private ReplayRepository replayRepository;
 
-    @GetMapping("/{replayId}")
-    public ResponseEntity<?> getReplayById(
-            @PathVariable("replayId") Long replayId,
-            @RequestParam(value = "force", required = false, defaultValue = "false") boolean force) {
-        if (force) {
-            // Dynamically check if the user has the required role/authority
-            if (denyForceAnalyseAccess()) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("You don't have permission to forcibly reanalyze replays.");
-            }
-            LOGGER.info("Forcibly reanalyzing replay with ID {}", replayId);
-        } else {
-            Optional<Replay> replayById = replayRepository.findById(replayId);
-            if (replayById.isPresent()) {
-                return ResponseEntity.ok(replayById.get());
-            }
-        }
-
-        File file;
-        try {
-            file = ReplayDownloader.downloadReplay(ReplayDownloader.DOWNLOAD_DIRECTORY, replayId);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to download replay with ID " + replayId + ": " + e.getMessage());
-        }
-
-        Replay createdReplay;
-        try {
-            createdReplay = createDatabaseReplayEntity(file);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to analyze replay with ID " + replayId + ": " + e.getMessage());
-        }
-
-        return ResponseEntity.ok(createdReplay);
-    }
-
-    private boolean denyForceAnalyseAccess() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            return authentication.getAuthorities().stream()
-                    .noneMatch(grantedAuthority ->
-                            grantedAuthority.getAuthority().equals("ROLE_ADMIN") ||
-                                    grantedAuthority.getAuthority().equals("REPLAY_FORCE_ACCESS")
-                    );
-        }
-        return true;
-    }
-
-    private Replay createDatabaseReplayEntity(File file) throws IOException {
-        // Analyze the replay file
-        Replay replay = new Replay();
-        new ReplayAnalyser(file, replay).analyzeFAFReplay();
-
-        // Save to repository
-        try {
-            replayRepository.save(replay);
-        } catch (Exception e) {
-            LOGGER.error("Failed to save replay to database: {}", e.getMessage(), e);
-            throw e;
-        }
-
-        return replay;
-    }
-
     @PostMapping("/upload")
     public ResponseEntity<?> uploadReplay(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
@@ -146,6 +81,28 @@ public class ReplayController {
         return ResponseEntity.status(HttpStatus.CREATED).body(replay);
     }
 
+    private Replay createDatabaseReplayEntity(File file) throws IOException {
+        // Analyze the replay file
+        Replay replay = new Replay();
+        new ReplayAnalyser(file, replay).analyzeFAFReplay();
+
+        long startTime = System.currentTimeMillis();
+        // Save to repository
+        try {
+            replayRepository.save(replay);
+        } catch (Exception e) {
+            LOGGER.error("Failed to save replay to database: {}", e.getMessage(), e);
+            throw e;
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            long endTime = System.currentTimeMillis();
+            LOGGER.debug("Replay {} saved in {} ms", replay.getId(), endTime - startTime);
+        }
+
+        return replay;
+    }
+
     @GetMapping("/ids")
     public ResponseEntity<List<Long>> getAllReplayIds() {
         List<Long> replayIds = replayRepository.findAll().stream()
@@ -164,6 +121,17 @@ public class ReplayController {
         return ResponseEntity.ok("All replays deleted successfully.");
     }
 
+    private boolean denyForceAnalyseAccess() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            return authentication.getAuthorities().stream()
+                    .noneMatch(grantedAuthority ->
+                            grantedAuthority.getAuthority().equals("ROLE_ADMIN") ||
+                                    grantedAuthority.getAuthority().equals("REPLAY_FORCE_ACCESS")
+                    );
+        }
+        return true;
+    }
 
     @GetMapping("/player/{username}")
     public ResponseEntity<List<Replay>> getReplaysByPlayerName(@PathVariable("username") String username) {
@@ -173,6 +141,58 @@ public class ReplayController {
         }
         return ResponseEntity.ok(replays);
     }
+
+    @GetMapping("/{replayId}")
+    public ResponseEntity<?> getReplayById(
+            @PathVariable("replayId") Long replayId,
+            @RequestParam(value = "single", required = false, defaultValue = "true") boolean single,
+            @RequestParam(value = "force", required = false, defaultValue = "false") boolean force) {
+        if (force || !single) {
+            // Dynamically check if the user has the required role/authority
+            if (denyForceAnalyseAccess()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You don't have permission to forcibly reanalyze replays.");
+            }
+            LOGGER.info("Forcibly reanalyzing replay with ID {}", replayId);
+        } else {
+            Optional<Replay> replayById = replayRepository.findById(replayId);
+            if (replayById.isPresent()) {
+                return ResponseEntity.ok(replayById.get());
+            }
+        }
+
+        if (single) {
+            return downloadAndAnalyseReplay(replayId);
+        } else {
+            long highestReplayId = replayRepository.findMaxId().orElse(0L);
+            executorService.submit(() -> {
+                        for (long currentReplayId = highestReplayId + 1; currentReplayId <= replayId; currentReplayId++) {
+                            downloadAndAnalyseReplay(currentReplayId);
+                        }
+                    }
+            );
+
+            return ResponseEntity.ok("Replay processing started. This may take some time.");
+        }
+    }
+
+    private ResponseEntity<?> downloadAndAnalyseReplay(Long replayId) {
+        File file;
+        try {
+            file = ReplayDownloader.downloadReplay(ReplayDownloader.DOWNLOAD_DIRECTORY, replayId);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to download replay with ID " + replayId + ": " + e.getMessage());
+        }
+
+        try {
+            return ResponseEntity.ok(createDatabaseReplayEntity(file));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to analyze replay with ID " + replayId + ": " + e.getMessage());
+        }
+    }
+
     @PostConstruct
     public void initHotfolderListener() {
         executorService.submit(() -> {
