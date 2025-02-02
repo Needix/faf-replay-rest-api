@@ -228,4 +228,17 @@ public class ReplayController {
             }
         });
     }
+
+    @PostConstruct
+    public void importInitialReplaysFromHotfolder() {
+        executorService.submit(() -> {
+            File[] hotfolderFiles = new File(HOTFOLDER_PATH).listFiles();
+            if (hotfolderFiles == null) return;
+            for (File file : hotfolderFiles) {
+                if (file.getName().endsWith(ReplayDownloader.FILE_EXTENSION)) {
+                    processReplayFileAsync(file);
+                }
+            }
+        });
+    }
 }
