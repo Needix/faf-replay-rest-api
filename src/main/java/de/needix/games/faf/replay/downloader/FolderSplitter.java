@@ -23,8 +23,26 @@ public class FolderSplitter {
             return;
         }
 
-        File[] files = sourceFolder.listFiles((dir, name) -> name.matches("replay-\\d+\\.fafreplay"));
+        int folderIndex = 0;
 
+        File currentSubfolder = createSubfolder(sourceFolder, folderIndex, false);
+        while (currentSubfolder.exists()) {
+            folderIndex++;
+            currentSubfolder = createSubfolder(sourceFolder, folderIndex, false);
+        }
+        folderIndex--;
+        currentSubfolder = createSubfolder(sourceFolder, folderIndex, true);
+
+        File[] filesInCurrentSubfolder = currentSubfolder.listFiles();
+        int fileCount = filesInCurrentSubfolder == null ? 0 : filesInCurrentSubfolder.length;
+        while (fileCount >= maxFilesPerFolder) {
+            folderIndex++;
+            currentSubfolder = createSubfolder(sourceFolder, folderIndex, true);
+            filesInCurrentSubfolder = currentSubfolder.listFiles();
+            fileCount = filesInCurrentSubfolder == null ? 0 : filesInCurrentSubfolder.length;
+        }
+
+        File[] files = sourceFolder.listFiles((dir, name) -> name.matches("replay-\\d+\\.fafreplay"));
         if (files == null || files.length == 0) {
             System.out.println("No matching files found in the source folder.");
             return;
@@ -32,23 +50,11 @@ public class FolderSplitter {
 
         System.out.println("Total files to process: " + files.length);
 
-        int folderIndex = 0;
-
-        File currentSubfolder = createSubfolder(sourceFolder, folderIndex);
-        File[] filesInCurrentSubfolder = currentSubfolder.listFiles();
-        int fileCount = filesInCurrentSubfolder == null ? 0 : filesInCurrentSubfolder.length;
-        while (fileCount >= maxFilesPerFolder) {
-            folderIndex++;
-            currentSubfolder = createSubfolder(sourceFolder, folderIndex);
-            filesInCurrentSubfolder = currentSubfolder.listFiles();
-            fileCount = filesInCurrentSubfolder == null ? 0 : filesInCurrentSubfolder.length;
-        }
-
         for (File file : files) {
             if (fileCount >= maxFilesPerFolder) {
                 folderIndex++;
                 fileCount = 0;
-                currentSubfolder = createSubfolder(sourceFolder, folderIndex);
+                currentSubfolder = createSubfolder(sourceFolder, folderIndex, true);
             }
 
             try {
@@ -67,9 +73,9 @@ public class FolderSplitter {
         System.out.println("Folder splitting complete. Created " + (folderIndex + 1) + " subfolders.");
     }
 
-    private static File createSubfolder(File parentFolder, int index) {
+    private static File createSubfolder(File parentFolder, int index, boolean createIfMissing) {
         File subfolder = new File(parentFolder, "subfolder-" + index);
-        if (!subfolder.exists()) {
+        if (createIfMissing && !subfolder.exists()) {
             if (subfolder.mkdir()) {
                 System.out.println("Created subfolder: " + subfolder.getAbsolutePath());
             } else {
