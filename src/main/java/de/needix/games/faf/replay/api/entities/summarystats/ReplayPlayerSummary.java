@@ -1,6 +1,8 @@
 package de.needix.games.faf.replay.api.entities.summarystats;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import de.needix.games.faf.replay.analyser.parser.BlueprintsDeserializer;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,6 +34,7 @@ public class ReplayPlayerSummary {
     @CollectionTable(name = "blueprint_stats", joinColumns = @JoinColumn(name = "game_stat_id"))
     @MapKeyColumn(name = "blueprint_id")
     @Column(name = "stats")
+    @JsonDeserialize(using = BlueprintsDeserializer.class)
     private Map<String, BlueprintStats> blueprints;
 
     @Embedded
