@@ -32,6 +32,7 @@ public class ReplayHeader {
         // Read scenario
         reader.readUnsignedInt();// scenario_size
         Object scenario = reader.readLua(null);
+        replayToFill.setScenarioInformation((Map<String, Serializable>) scenario);
 
         // Read players
         int sourcesNumber = reader.readByte();

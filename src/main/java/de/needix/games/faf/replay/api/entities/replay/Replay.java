@@ -9,7 +9,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,4 +47,7 @@ public class Replay {
 
     @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private List<ReplayPlayerSummary> playerScores;
+    @ElementCollection
+    @Lob
+    private Map<String, Serializable> scenarioInformation = new HashMap<>();
 }
