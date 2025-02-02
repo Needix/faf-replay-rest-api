@@ -5,6 +5,12 @@ import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
 import de.needix.games.faf.replay.api.entities.summarystats.ResourceStats;
 import de.needix.games.faf.replay.api.entities.summarystats.UnitStats;
 import de.needix.games.faf.replay.api.repositories.PlayerRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,14 +31,31 @@ public class PlayerController {
     @Autowired
     private PlayerRepository playerRepository;
 
+    @Operation(summary = "Lists all players available in replays")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "All player names available in replays",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Long.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
     @GetMapping("/list")
     public ResponseEntity<List<String>> getPlayerNames() {
         List<String> playerNames = playerRepository.findDistinctPlayerNames();
         return ResponseEntity.ok(playerNames);
     }
 
+    @Operation(summary = "A summary of the stats a given playername")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "A summary of the stats a given playername",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Long.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
     @GetMapping("/{playerName}/summary")
-    public ResponseEntity<?> getPlayerStatsSummary(@PathVariable("playerName") String playerName) {
+    public ResponseEntity<?> getPlayerStatsSummary(
+            @Parameter(description = "The name of the player", example = "Need")
+            @PathVariable("playerName")
+            String playerName) {
         List<ReplayPlayer> replayPlayer = playerRepository.findAllByPlayerName(playerName);
 
         List<ReplayPlayerSummary> summaries = playerRepository.findAllSummariesByPlayerName(playerName);

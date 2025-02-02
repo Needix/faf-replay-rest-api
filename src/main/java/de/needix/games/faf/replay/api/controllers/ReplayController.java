@@ -4,6 +4,12 @@ import de.needix.games.faf.replay.analyser.ReplayAnalyser;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
 import de.needix.games.faf.replay.api.repositories.ReplayRepository;
 import de.needix.games.faf.replay.downloader.ReplayDownloader;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +45,25 @@ public class ReplayController {
     @Autowired
     private ReplayRepository replayRepository;
 
-    @PostMapping("/upload")
-    public ResponseEntity<?> uploadReplay(@RequestParam("file") MultipartFile file) {
+    @Operation(summary = "Upload a FAF replay file",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "The replay file to upload. Must be a `.fafreplay` file.",
+                    required = true,
+                    content = @Content(mediaType = "multipart/form-data")
+            ))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Replay uploaded successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Replay.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input or file type",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content)
+    })
+    @PostMapping(value = "/upload", consumes = "multipart/form-data")
+    public ResponseEntity<?> uploadReplay(
+            @Parameter(description = "The replay file to analyse. Has to be a .fafreplay file")
+            @RequestParam MultipartFile file) {
         if (file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No file was uploaded.");
         }
@@ -103,6 +126,13 @@ public class ReplayController {
         return replay;
     }
 
+    @Operation(summary = "Retrieve all replay IDs")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of replay IDs retrieved",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Long.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
     @GetMapping("/ids")
     public ResponseEntity<List<Long>> getAllReplayIds() {
         List<Long> replayIds = replayRepository.findAll().stream()
@@ -111,6 +141,14 @@ public class ReplayController {
         return ResponseEntity.ok(replayIds);
     }
 
+    @Operation(summary = "Deletes all replays")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "All replays deleted",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Long.class))),
+            @ApiResponse(responseCode = "403", description = "You are not allowed to do this", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
     @PostMapping("/delete")
     public ResponseEntity<?> deleteAllReplays() {
         if (denyForceAnalyseAccess()) {
@@ -133,8 +171,19 @@ public class ReplayController {
         return true;
     }
 
+    @Operation(summary = "Returns all replays of a specific player")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "All replays of a specific player.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Long.class))),
+            @ApiResponse(responseCode = "404", description = "No replays for that player found", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
     @GetMapping("/player/{username}")
-    public ResponseEntity<List<Replay>> getReplaysByPlayerName(@PathVariable("username") String username) {
+    public ResponseEntity<List<Replay>> getReplaysByPlayerName(
+            @Parameter(description = "The username of the player", example = "Need")
+            @PathVariable("username")
+            String username) {
         List<Replay> replays = replayRepository.findAllReplaysByPlayerName(username);
         if (replays.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -142,11 +191,30 @@ public class ReplayController {
         return ResponseEntity.ok(replays);
     }
 
+    @Operation(summary = "Analyses a replay by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "All replays of a specific player.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Long.class))),
+            @ApiResponse(responseCode = "403", description = "You are not allowed to do this", content = @Content),
+            @ApiResponse(responseCode = "404", description = "No replays for that player found", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
     @GetMapping("/{replayId}")
     public ResponseEntity<?> getReplayById(
-            @PathVariable("replayId") Long replayId,
-            @RequestParam(value = "single", required = false, defaultValue = "true") boolean single,
-            @RequestParam(value = "force", required = false, defaultValue = "false") boolean force) {
+            @Parameter(description = "The id of the replay", example = "21428000")
+            @PathVariable("replayId")
+            Long replayId,
+
+            @Parameter(description = "Whether to analyse this specific replay or all replays until this id",
+                    example = "true")
+            @RequestParam(value = "single", required = false, defaultValue = "true")
+            boolean single,
+
+            @Parameter(description = "To forcibly reanalyze the given replay, if it was already analyzed.",
+                    example = "false")
+            @RequestParam(value = "force", required = false, defaultValue = "false")
+            boolean force) {
         if (force || !single) {
             // Dynamically check if the user has the required role/authority
             if (denyForceAnalyseAccess()) {
