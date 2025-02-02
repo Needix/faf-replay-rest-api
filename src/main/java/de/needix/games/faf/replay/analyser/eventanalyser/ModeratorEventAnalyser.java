@@ -39,6 +39,10 @@ public class ModeratorEventAnalyser {
 
         } else if (message.startsWith("Created a ping of type ")) {
             String pingType = message.substring(24, message.length() - 1);
+        } else if (message.startsWith("Self-destructed ")) {
+            // Self-destructed 1 units
+        } else if (message.startsWith("Switched focus army")) {
+            // Switched focus army from 4 to -1!
 
         } else {
             LOGGER.warn("Ignoring moderator event message which does not start with 'GpgNetSend': {}", message);
