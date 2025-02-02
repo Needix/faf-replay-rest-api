@@ -164,6 +164,15 @@ public class ReplayController {
         return ResponseEntity.ok("All replays deleted successfully.");
     }
 
+
+    @GetMapping("/player/{username}")
+    public ResponseEntity<List<Replay>> getReplaysByPlayerName(@PathVariable("username") String username) {
+        List<Replay> replays = replayRepository.findAllReplaysByPlayerName(username);
+        if (replays.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(replays);
+    }
     @PostConstruct
     public void initHotfolderListener() {
         executorService.submit(() -> {
