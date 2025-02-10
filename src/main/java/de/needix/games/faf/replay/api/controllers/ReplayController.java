@@ -4,6 +4,7 @@ import de.needix.games.faf.replay.analyser.ReplayAnalyser;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
 import de.needix.games.faf.replay.api.repositories.ReplayRepository;
 import de.needix.games.faf.replay.downloader.ReplayDownloader;
+import de.needix.games.faf.replay.exceptions.ReplayNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -231,6 +232,9 @@ public class ReplayController {
         File file;
         try {
             file = ReplayDownloader.downloadReplay(replayId);
+        } catch (ReplayNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Replay with ID " + replayId + " not found.");
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to download replay with ID " + replayId + ": " + e.getMessage());
