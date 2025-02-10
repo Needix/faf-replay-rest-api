@@ -206,16 +206,11 @@ public class ReplayController {
             @PathVariable("replayId")
             Long replayId,
 
-            @Parameter(description = "Whether to analyse this specific replay or all replays until this id",
-                    example = "true")
-            @RequestParam(value = "single", required = false, defaultValue = "true")
-            boolean single,
-
             @Parameter(description = "To forcibly reanalyze the given replay, if it was already analyzed.",
                     example = "false")
             @RequestParam(value = "force", required = false, defaultValue = "false")
             boolean force) {
-        if (force || !single) {
+        if (force) {
             // Dynamically check if the user has the required role/authority
             if (denyForceAnalyseAccess()) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -229,19 +224,7 @@ public class ReplayController {
             }
         }
 
-        if (single) {
-            return downloadAndAnalyseReplay(replayId);
-        } else {
-            long highestReplayId = replayRepository.findMaxId().orElse(0L);
-            executorService.submit(() -> {
-                        for (long currentReplayId = highestReplayId + 1; currentReplayId <= replayId; currentReplayId++) {
-                            downloadAndAnalyseReplay(currentReplayId);
-                        }
-                    }
-            );
-
-            return ResponseEntity.ok("Replay processing started. This may take some time.");
-        }
+        return downloadAndAnalyseReplay(replayId);
     }
 
     private ResponseEntity<?> downloadAndAnalyseReplay(Long replayId) {
@@ -259,6 +242,50 @@ public class ReplayController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to analyze replay with ID " + replayId + ": " + e.getMessage());
         }
+    }
+
+    @Operation(summary = "Analyses a replay by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "All replays of a specific player.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Long.class))),
+            @ApiResponse(responseCode = "403", description = "You are not allowed to do this", content = @Content),
+            @ApiResponse(responseCode = "404", description = "No replays for that player found", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
+
+    @GetMapping("/range")
+    public ResponseEntity<?> getReplaysByRange(
+            @Parameter(description = "The start index", example = "21428000")
+            @RequestParam("from")
+            Long from,
+
+            @Parameter(description = "The end index", example = "21428010")
+            @RequestParam("to")
+            Long to) {
+        // Dynamically check if the user has the required role/authority
+        if (denyForceAnalyseAccess()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You don't have permission to forcibly reanalyze replays.");
+        }
+
+        LOGGER.info("Analyzing replays from {} to {}.", from, to);
+
+        executorService.submit(() -> {
+                    for (long currentReplayId = from; currentReplayId <= to; currentReplayId++) {
+                        try {
+                            ResponseEntity<?> responseEntity = downloadAndAnalyseReplay(currentReplayId);
+                            if (responseEntity.getStatusCode() != HttpStatus.OK) {
+                                LOGGER.warn("Failed to analyze replay with ID {}: {}", currentReplayId, responseEntity.getBody());
+                            }
+                        } catch (RuntimeException e) {
+                            LOGGER.error("Failed to analyze replay with ID {}: {}", currentReplayId, e.getMessage());
+                        }
+                    }
+                }
+        );
+
+        return ResponseEntity.ok("Replay processing started. This may take some time.");
     }
 
     @PostConstruct
