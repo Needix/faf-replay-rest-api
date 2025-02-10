@@ -12,18 +12,23 @@ import java.text.MessageFormat;
 public class ReplayDownloader {
     public static final String BASE_URL = "https://replay.faforever.com/";
     public static final String FILE_EXTENSION = ".fafreplay";
-    public static final String DOWNLOAD_DIRECTORY = "replays";
+    public static final String BASE_DOWNLOAD_DIRECTORY = "/mnt/faf-replays";
     public static final long RETRY_DELAY_MS = 1000; // Delay in milliseconds between retries
+    private static final int FILES_PER_FOLDER = 10000;
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayDownloader.class);
 
-    public static File downloadReplay(String downloadDirectory, long replayId) throws IOException, ReplayNotFoundException {
-        ensureDirectoryExists(downloadDirectory);
+    public static File downloadReplay(long replayId) throws IOException, ReplayNotFoundException {
+        // Determine target folder based on the file number
+        long folderNumber = replayId / FILES_PER_FOLDER;
+        String targetDir = BASE_DOWNLOAD_DIRECTORY + "/" + "subfolder-" + folderNumber;
+
+        ensureDirectoryExists(targetDir);
 
         String fileName = "replay-" + replayId + FILE_EXTENSION;
-        File outputFile = new File(downloadDirectory, fileName).getCanonicalFile();
+        File outputFile = new File(targetDir, fileName).getCanonicalFile();
 
         // Validate that outputFile is inside the base directory
-        String baseCanonicalPath = new File(downloadDirectory).getCanonicalPath();
+        String baseCanonicalPath = new File(targetDir).getCanonicalPath();
         if (!outputFile.getPath().startsWith(baseCanonicalPath)) {
             throw new SecurityException("Path traversal attempt detected.");
         }
