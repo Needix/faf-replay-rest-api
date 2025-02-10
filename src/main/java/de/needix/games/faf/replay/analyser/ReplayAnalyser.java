@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Objects;
 import java.util.zip.InflaterInputStream;
 
@@ -49,6 +50,7 @@ public class ReplayAnalyser {
         String compression = jsonHeader.get("compression").getAsString();
 
         replayToFill.setId(jsonHeader.get("uid").getAsLong());
+        replayToFill.setImportDate(new Date());
         replayToFill.setReplayCompression(compression);
         replayToFill.setReplayVersion(replayVersion);
         replayToFill.setReplayTitle(jsonHeader.get("title").getAsString());

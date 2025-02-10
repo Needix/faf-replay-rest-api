@@ -9,10 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 @Setter
@@ -21,6 +18,9 @@ import java.util.Map;
 public class Replay {
     @Id
     private Long id;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date importDate;
 
     private String replayTitle;
     private int replayVersion;
