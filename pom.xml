@@ -94,16 +94,6 @@
             <version>2.1.0</version>
         </dependency>
 
-        <!-- Logging -->
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjweaver</artifactId>
-        </dependency>
-
         <!-- DBs -->
         <dependency>
             <groupId>com.mysql</groupId>
