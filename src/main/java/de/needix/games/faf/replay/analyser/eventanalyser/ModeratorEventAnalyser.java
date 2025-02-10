@@ -104,7 +104,7 @@ public class ModeratorEventAnalyser {
 
             this.replayToFill.setPlayerScores(replayPlayerSummaries);
         } catch (Exception e) {
-            LOGGER.error("Failed to process JsonStats: {}", e.getMessage(), e);
+            LOGGER.error("Failed to process JsonStats \"{}\"! Exception: {}", jsonStats, e.getMessage(), e);
         }
     }
 

@@ -33,11 +33,11 @@ public class ReplayDownloader {
             throw new SecurityException("Path traversal attempt detected.");
         }
 
-        LOGGER.debug("Downloading replay {} to {}", replayId, outputFile.getPath());
+        LOGGER.info("Downloading replay {} to {}", replayId, outputFile.getPath());
 
 
         String fileUrl = BASE_URL + replayId;
-        LOGGER.debug("Trying to download {}", fileUrl);
+        LOGGER.info("Trying to download {}", fileUrl);
         URL url = new URL(fileUrl);
         while (true) {
             HttpURLConnection connection = null;
@@ -63,7 +63,7 @@ public class ReplayDownloader {
                             fileOutputStream.write(buffer, 0, bytesRead);
                         }
                     }
-                    LOGGER.debug("Downloaded: {}", outputFile.getAbsolutePath());
+                    LOGGER.info("Downloaded: {}", outputFile.getAbsolutePath());
                     return outputFile; // Exit the loop after a successful download
 
                 } else if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP || responseCode == HttpURLConnection.HTTP_MOVED_PERM) {

@@ -39,8 +39,8 @@ public class ReplayAnalyser {
             return;
         }
 
-        LOGGER.debug("Analyzing file: {}", filePath);
-        LOGGER.debug("File size: {} bytes", file.length());
+        LOGGER.info("Analyzing file: {}", filePath);
+        LOGGER.info("File size: {} bytes", file.length());
 
         String jsonHeaderasString = getJsonHeader(file);
         JsonObject jsonHeader = getJsonHeaderAsJsonObject(jsonHeaderasString);
@@ -68,7 +68,7 @@ public class ReplayAnalyser {
         }
         new ReplayParser(decompressedData, replayToFill);
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Parsed replay in {} ms", System.currentTimeMillis() - startTime);
+            LOGGER.info("Parsed replay in {} ms", System.currentTimeMillis() - startTime);
         }
     }
 

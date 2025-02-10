@@ -120,7 +120,7 @@ public class ReplayController {
 
         if (LOGGER.isDebugEnabled()) {
             long endTime = System.currentTimeMillis();
-            LOGGER.debug("Replay {} saved in {} ms", replay.getId(), endTime - startTime);
+            LOGGER.info("Replay {} saved in {} ms", replay.getId(), endTime - startTime);
         }
 
         return replay;
