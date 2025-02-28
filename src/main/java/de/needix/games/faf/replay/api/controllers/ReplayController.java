@@ -15,6 +15,9 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -33,7 +36,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin
@@ -127,20 +129,23 @@ public class ReplayController {
         return replay;
     }
 
-    @Operation(summary = "Retrieve all replay IDs")
+    @Operation(summary = "Retrieve all replay IDs with pagination")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "List of replay IDs retrieved",
+            @ApiResponse(responseCode = "200", description = "Page of replay IDs retrieved",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Long.class))),
+                            schema = @Schema(implementation = Page.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
     })
     @GetMapping("/ids")
-    public ResponseEntity<List<Long>> getAllReplayIds() {
-        List<Long> replayIds = replayRepository.findAll().stream()
-                .map(Replay::getId)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(replayIds);
+    public ResponseEntity<Page<Long>> getAllReplayIds(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Long> replayIdsPage = replayRepository.findReplayIds(pageable);
+        return ResponseEntity.ok(replayIdsPage);
     }
+
 
     @Operation(summary = "Deletes all replays")
     @ApiResponses(value = {
