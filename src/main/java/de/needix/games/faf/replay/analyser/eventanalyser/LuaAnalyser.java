@@ -141,7 +141,11 @@ public class LuaAnalyser implements CommandAnalyser {
         Object sender = lua.get("Sender");
 
         if (msgData != null) {
-            ChatAnalyser.handleChat(command, replayToFill, msgData, sender.toString());
+            if (sender != null) {
+                ChatAnalyser.handleChat(command, replayToFill, msgData, sender.toString());
+            } else {
+                LOGGER.warn("Sender is null for GiveResourcesToPlayer: {}", msgData);
+            }
         } else {
             int toId = ((Float) lua.get("To")).intValue();
             int fromId = ((Float) lua.get("From")).intValue();
