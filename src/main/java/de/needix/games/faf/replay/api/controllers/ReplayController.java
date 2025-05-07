@@ -68,6 +68,8 @@ public class ReplayController {
     public ResponseEntity<?> uploadReplay(
             @Parameter(description = "The replay file to analyse. Has to be a .fafreplay file")
             @RequestParam MultipartFile file) {
+        LOGGER.info("Received upload request for replay file {}", file.getOriginalFilename());
+
         if (file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No file was uploaded.");
         }
@@ -142,6 +144,8 @@ public class ReplayController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
+        LOGGER.info("Received request for page {} of {} replay IDs", page, size);
+
         Pageable pageable = PageRequest.of(page, size);
         Page<Long> replayIdsPage = replayRepository.findReplayIds(pageable);
         return ResponseEntity.ok(replayIdsPage);
@@ -158,6 +162,8 @@ public class ReplayController {
     })
     @PostMapping("/delete")
     public ResponseEntity<?> deleteAllReplays() {
+        LOGGER.info("Received request to delete all replays");
+
         if (denyForceAnalyseAccess()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("You don't have permission to delete replays.");
@@ -191,6 +197,8 @@ public class ReplayController {
             @Parameter(description = "The username of the player", example = "Need")
             @PathVariable("username")
             String username) {
+        LOGGER.info("Received request for replays of player '{}'", username);
+
         List<Replay> replays = replayRepository.findAllReplaysByPlayerName(username);
         if (replays.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -217,6 +225,8 @@ public class ReplayController {
                     example = "false")
             @RequestParam(value = "force", required = false, defaultValue = "false")
             boolean force) {
+        LOGGER.info("Received request for replay with ID {}. Forcing reanalysis: {}", replayId, force);
+
         if (force) {
             // Dynamically check if the user has the required role/authority
             if (denyForceAnalyseAccess()) {
@@ -273,7 +283,8 @@ public class ReplayController {
             @Parameter(description = "The end index", example = "21428010")
             @RequestParam("to")
             Long to) {
-        // Dynamically check if the user has the required role/authority
+        LOGGER.info("Received request for replays from {} to {}.", from, to);
+
         if (denyForceAnalyseAccess()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("You don't have permission to forcibly reanalyze replays.");
