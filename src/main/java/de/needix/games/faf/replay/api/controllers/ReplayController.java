@@ -188,7 +188,7 @@ public class ReplayController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "All replays of a specific player.",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Long.class))),
+                            schema = @Schema(implementation = List.class))),
             @ApiResponse(responseCode = "404", description = "No replays for that player found", content = @Content),
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
     })
@@ -208,11 +208,11 @@ public class ReplayController {
 
     @Operation(summary = "Analyses a replay by id")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "All replays of a specific player.",
+            @ApiResponse(responseCode = "200", description = "The specified replay.",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Long.class))),
+                            schema = @Schema(implementation = Replay.class))),
             @ApiResponse(responseCode = "403", description = "You are not allowed to do this", content = @Content),
-            @ApiResponse(responseCode = "404", description = "No replays for that player found", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Replay was not found", content = @Content),
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
     })
     @GetMapping("/{replayId}")
@@ -264,16 +264,14 @@ public class ReplayController {
         }
     }
 
-    @Operation(summary = "Analyses a replay by id")
+    @Operation(summary = "Analyses a replay by id range")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "All replays of a specific player.",
+            @ApiResponse(responseCode = "200", description = "The specific replays will be analysed asynchronously.",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Long.class))),
+                            schema = @Schema(implementation = String.class))),
             @ApiResponse(responseCode = "403", description = "You are not allowed to do this", content = @Content),
-            @ApiResponse(responseCode = "404", description = "No replays for that player found", content = @Content),
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
     })
-
     @GetMapping("/range")
     public ResponseEntity<?> getReplaysByRange(
             @Parameter(description = "The start index", example = "21428000")
