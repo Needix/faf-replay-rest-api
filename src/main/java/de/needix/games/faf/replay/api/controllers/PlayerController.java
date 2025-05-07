@@ -48,6 +48,22 @@ public class PlayerController {
         return ResponseEntity.ok(playerNames);
     }
 
+    @Operation(summary = "Search players available in replays by playername")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found replays",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
+    @GetMapping("/search")
+    public ResponseEntity<Page<String>> searchPlayerNames(@RequestParam(defaultValue = "") String searchTerm,
+                                                          @RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<String> playerNames = playerRepository.searchReplayPlayer(pageable, searchTerm);
+        return ResponseEntity.ok(playerNames);
+    }
+
     @Operation(summary = "A summary of the stats a given playername")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "A summary of the stats a given playername",
@@ -60,7 +76,7 @@ public class PlayerController {
             @Parameter(description = "The name of the player", example = "Need")
             @PathVariable("playerName")
             String playerName) {
-        List<ReplayPlayer> replayPlayer = playerRepository.findAllByPlayerName(playerName);
+//        List<ReplayPlayer> replayPlayer = playerRepository.findAllByPlayerName(playerName);
 
         List<ReplayPlayerSummary> summaries = playerRepository.findAllSummariesByPlayerName(playerName);
 
