@@ -1,6 +1,5 @@
 package de.needix.games.faf.replay.api.controllers;
 
-import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
 import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
 import de.needix.games.faf.replay.api.entities.summarystats.ResourceStats;
 import de.needix.games.faf.replay.api.entities.summarystats.UnitStats;
@@ -14,6 +13,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,12 +37,14 @@ public class PlayerController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "All player names available in replays",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Long.class))),
+                            schema = @Schema(implementation = Page.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
     })
     @GetMapping("/list")
-    public ResponseEntity<List<String>> getPlayerNames() {
-        List<String> playerNames = playerRepository.findDistinctPlayerNames();
+    public ResponseEntity<Page<String>> getPlayerNames(@RequestParam(defaultValue = "0") int page,
+                                                       @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<String> playerNames = playerRepository.findDistinctPlayerNames(pageable);
         return ResponseEntity.ok(playerNames);
     }
 
