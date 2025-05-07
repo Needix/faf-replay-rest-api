@@ -17,4 +17,14 @@ public interface ReplayRepository extends JpaRepository<Replay, Long> {
 
     @Query("SELECT r.id FROM Replay r")
     Page<Long> findReplayIds(Pageable pageable);
+
+    @Query("SELECT DISTINCT r.id FROM Replay r " +
+            "LEFT JOIN r.players p " +
+            "WHERE LOWER(r.replayTitle) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+            "OR LOWER(r.gameType) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+            "OR LOWER(r.mapName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+            "OR LOWER(p.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) "
+    )
+    Page<Long> findBySearchTerm(Pageable pageable, @Param("searchTerm") String searchTerm);
+
 }
