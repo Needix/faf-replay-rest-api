@@ -44,7 +44,8 @@ public class ReplayController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayController.class);
 
     private static final String HOTFOLDER_PATH = "hotfolder";
-    private final ExecutorService executorService = Executors.newFixedThreadPool(4);
+    private final ExecutorService asyncReplayAnalyserExecutorService = Executors.newFixedThreadPool(4);
+
     @Autowired
     private ReplayRepository replayRepository;
 
@@ -280,7 +281,7 @@ public class ReplayController {
 
         LOGGER.info("Analyzing replays from {} to {}.", from, to);
 
-        executorService.submit(() -> {
+        asyncReplayAnalyserExecutorService.submit(() -> {
                     for (long currentReplayId = from; currentReplayId <= to; currentReplayId++) {
                         try {
                             ResponseEntity<?> responseEntity = downloadAndAnalyseReplay(currentReplayId);
@@ -299,7 +300,7 @@ public class ReplayController {
 
     @PostConstruct
     public void initHotfolderListener() {
-        executorService.submit(() -> {
+        asyncReplayAnalyserExecutorService.submit(() -> {
             try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
                 Path path = Paths.get(HOTFOLDER_PATH);
                 path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
@@ -345,7 +346,7 @@ public class ReplayController {
     public void processReplayFileAsync(File file) {
         Objects.requireNonNull(file, "file must not be null");
 
-        executorService.submit(() -> {
+        asyncReplayAnalyserExecutorService.submit(() -> {
             try {
                 if (!file.exists() || !file.isFile() || !file.getName().endsWith(ReplayDownloader.FILE_EXTENSION)) {
                     LOGGER.error("Skipping invalid file: {}", file.getName());
@@ -364,7 +365,7 @@ public class ReplayController {
 
     @PostConstruct
     public void importInitialReplaysFromHotfolder() {
-        executorService.submit(() -> {
+        asyncReplayAnalyserExecutorService.submit(() -> {
             File[] hotfolderFiles = new File(HOTFOLDER_PATH).listFiles();
             if (hotfolderFiles == null) return;
             for (File file : hotfolderFiles) {
