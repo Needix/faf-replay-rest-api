@@ -30,6 +30,30 @@ public class ReplayPlayer {
 
     @ElementCollection
     private Map<String, Serializable> armyInformation = new HashMap<>();
+    /**
+     * {
+     * "PlayerClan": "",
+     * "Civilian": false,
+     * "BadMap": false,
+     * "PlayerName": "stevethelord1",
+     * "Team": 2,
+     * "Faction": 4,
+     * "Human": true,
+     * "MEAN": 1127.15,
+     * "StartSpot": 1,
+     * "ArmyName": "ARMY_1",
+     * "ArmyColor": 15,
+     * "Ready": true,
+     * "PlayerColor": 15,
+     * "DEV": 110.331,
+     * "OwnerID": "423761",
+     * "AIPersonality": "",
+     * "Country": "ro",
+     * "NG": 190,
+     * "PL": 800,
+     * "ObserverListIndex": -1
+     * }
+     */
 
     @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     @Setter(AccessLevel.NONE)
