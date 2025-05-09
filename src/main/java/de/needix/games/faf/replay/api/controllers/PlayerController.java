@@ -4,6 +4,7 @@ import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
 import de.needix.games.faf.replay.api.entities.summarystats.ResourceStats;
 import de.needix.games.faf.replay.api.entities.summarystats.UnitStats;
 import de.needix.games.faf.replay.api.repositories.PlayerRepository;
+import io.micrometer.common.util.StringUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,6 +34,26 @@ public class PlayerController {
     @Autowired
     private PlayerRepository playerRepository;
 
+    @Operation(summary = "Search players available in replays by playername")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found replays",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
+    @GetMapping("/search")
+    public ResponseEntity<Page<String>> searchPlayerNames(@RequestParam(defaultValue = "") String searchTerm,
+                                                          @RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "10") int size) {
+        if (StringUtils.isBlank(searchTerm)) {
+            return getPlayerNames(page, size);
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<String> playerNames = playerRepository.searchReplayPlayer(pageable, searchTerm);
+        return ResponseEntity.ok(playerNames);
+    }
+
     @Operation(summary = "Lists all players available in replays")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "All player names available in replays",
@@ -45,22 +66,6 @@ public class PlayerController {
                                                        @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<String> playerNames = playerRepository.findDistinctPlayerNames(pageable);
-        return ResponseEntity.ok(playerNames);
-    }
-
-    @Operation(summary = "Search players available in replays by playername")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Found replays",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Page.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
-    })
-    @GetMapping("/search")
-    public ResponseEntity<Page<String>> searchPlayerNames(@RequestParam(defaultValue = "") String searchTerm,
-                                                          @RequestParam(defaultValue = "0") int page,
-                                                          @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<String> playerNames = playerRepository.searchReplayPlayer(pageable, searchTerm);
         return ResponseEntity.ok(playerNames);
     }
 
