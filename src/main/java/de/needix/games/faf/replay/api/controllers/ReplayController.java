@@ -137,6 +137,34 @@ public class ReplayController {
         return replay;
     }
 
+    @Operation(summary = "Search replays based on a string match across various fields")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Search results retrieved successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
+    @GetMapping("/search")
+    public ResponseEntity<Page<Long>> searchReplays(@RequestParam String query,
+                                                    @RequestParam(defaultValue = "0") int page,
+                                                    @RequestParam(defaultValue = "10") int size) {
+        LOGGER.info("Received request for search results for query '{}' with page {} and size {}", query, page, size);
+
+        if (StringUtils.isEmpty(query)) {
+            return getAllReplayIds(page, size);
+        }
+
+        final long startTime = System.currentTimeMillis();
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Long> replayPagination = replayRepository.findBySearchTerm(pageable, query);
+            LOGGER.info("Search took {} ms", System.currentTimeMillis() - startTime);
+            return ResponseEntity.ok(replayPagination);
+        } catch (Exception e) {
+            LOGGER.error("Error occurred while searching for replays: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @Operation(summary = "Retrieve all replay IDs with pagination")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Page of replay IDs retrieved",
@@ -155,31 +183,6 @@ public class ReplayController {
         Page<Long> replayIdsPage = replayRepository.findReplayIds(pageable);
         return ResponseEntity.ok(replayIdsPage);
     }
-
-    @Operation(summary = "Search replays based on a string match across various fields")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Search results retrieved successfully",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
-    })
-    @GetMapping("/search")
-    public ResponseEntity<Page<Long>> searchReplays(@RequestParam String query,
-                                                    @RequestParam(defaultValue = "0") int page,
-                                                    @RequestParam(defaultValue = "10") int size) {
-        LOGGER.info("Received request for search results for query '{}' with page {} and size {}", query, page, size);
-        final long startTime = System.currentTimeMillis();
-
-        try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<Long> replayPagination = replayRepository.findBySearchTerm(pageable, query);
-            LOGGER.info("Search took {} ms", System.currentTimeMillis() - startTime);
-            return ResponseEntity.ok(replayPagination);
-        } catch (Exception e) {
-            LOGGER.error("Error occurred while searching for replays: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
 
     @Operation(summary = "Deletes all replays")
     @ApiResponses(value = {
