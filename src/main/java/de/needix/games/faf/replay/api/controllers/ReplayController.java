@@ -12,13 +12,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.annotation.PostConstruct;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
@@ -27,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -314,7 +319,7 @@ public class ReplayController {
     private ResponseEntity<?> downloadAndAnalyseReplay(Long replayId) {
         File file;
         try {
-            file = ReplayDownloader.downloadReplay(replayId);
+            file = ReplayDownloader.downloadReplay(replayId, true);
         } catch (ReplayNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Replay with ID " + replayId + " not found.");
@@ -328,6 +333,39 @@ public class ReplayController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to analyze replay with ID " + replayId + ": " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Download a FAF replay file by its ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Replay downloaded successfully",
+                    content = @Content(mediaType = "application/octet-stream")),
+            @ApiResponse(responseCode = "404", description = "Replay file not found",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content)
+    })
+    @GetMapping("/download/{replayId}")
+    public ResponseEntity<?> getReplayFile(@PathVariable long replayId) {
+        try {
+            // Use the ReplayDownloader to get the replay file
+            File replayFile = ReplayDownloader.downloadReplay(replayId, false);
+
+            // Create a resource from the file
+            InputStreamResource resource = new InputStreamResource(new FileInputStream(replayFile));
+
+            // Build and return the response
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + replayFile.getName())
+                    .contentLength(replayFile.length())
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(resource);
+        } catch (ReplayNotFoundException e) {
+            LOGGER.error("Replay not found: {}", replayId, e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Replay not found");
+        } catch (IOException e) {
+            LOGGER.error("Error while trying to fetch replay: {}", replayId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while trying to fetch replay");
         }
     }
 

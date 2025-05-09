@@ -17,7 +17,7 @@ public class ReplayDownloader {
     private static final int FILES_PER_FOLDER = 10000;
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayDownloader.class);
 
-    public static File downloadReplay(long replayId) throws IOException, ReplayNotFoundException {
+    public static File downloadReplay(long replayId, boolean overwriteExistingFile) throws IOException, ReplayNotFoundException {
         // Determine target folder based on the file number
         long folderNumber = replayId / FILES_PER_FOLDER;
         String targetDir = BASE_DOWNLOAD_DIRECTORY + "/" + "subfolder-" + folderNumber;
@@ -31,6 +31,11 @@ public class ReplayDownloader {
         String baseCanonicalPath = new File(targetDir).getCanonicalPath();
         if (!outputFile.getPath().startsWith(baseCanonicalPath)) {
             throw new SecurityException("Path traversal attempt detected.");
+        }
+
+        if (outputFile.exists() && !overwriteExistingFile) {
+            LOGGER.info("File {} already exists. Skipping download.", outputFile.getPath());
+            return outputFile;
         }
 
         LOGGER.info("Downloading replay {} to {}", replayId, outputFile.getPath());
