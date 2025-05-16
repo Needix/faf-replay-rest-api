@@ -1,12 +1,14 @@
 package de.needix.games.faf.replay.api.entities.replay;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.needix.games.faf.replay.api.JsonAttributeConverter;
 import de.needix.games.faf.replay.api.entities.order.TargetOrder;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +18,8 @@ import java.util.Map;
 @Getter
 @Entity
 public class ReplayPlayer {
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,8 +32,11 @@ public class ReplayPlayer {
     private double massReceived;
     private double energyReceived;
 
-    @ElementCollection
-    private Map<String, Serializable> armyInformation = new HashMap<>();
+    @Convert(converter = JsonAttributeConverter.class)
+    @Column(columnDefinition = "json")
+    private Map<String, Object> armyInformation = new HashMap<>();
+
+    // Getters, setters, and other fields remain unchanged
     /**
      * {
      * "PlayerClan": "",
@@ -61,6 +68,15 @@ public class ReplayPlayer {
     @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     @Setter(AccessLevel.NONE)
     private List<TargetOrder> targetOrders = new ArrayList<>();
+
+    // Utility methods if needed to handle JSON conversion explicitly
+    public static String toJson(Map<String, Object> map) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(map);
+    }
+
+    public static Map<String, Object> fromJson(String json) throws JsonProcessingException {
+        return objectMapper.readValue(json, Map.class);
+    }
 
     public void addApmPerMinute(int minute, double apm) {
         ReplayPlayerApm replayPlayerApm = new ReplayPlayerApm();

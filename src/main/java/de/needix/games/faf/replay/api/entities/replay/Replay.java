@@ -1,6 +1,9 @@
 package de.needix.games.faf.replay.api.entities.replay;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.needix.games.faf.replay.api.JsonAttributeConverter;
 import de.needix.games.faf.replay.api.entities.chat.ReplayChatMessage;
 import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
 import jakarta.persistence.*;
@@ -8,7 +11,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.io.Serializable;
 import java.util.*;
 
 @Getter
@@ -16,6 +18,8 @@ import java.util.*;
 @Entity
 @ToString
 public class Replay {
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     @Id
     private Long id;
 
@@ -167,9 +171,22 @@ public class Replay {
      * "map": "/maps/dualgap_adaptive.v0014/DualGap_Adaptive.scmap"
      * }
      */
-    @ElementCollection
-    @Lob
-    private Map<String, Serializable> scenarioInformation = new HashMap<>();
+
+    @Convert(converter = JsonAttributeConverter.class)
+    @Column(columnDefinition = "json")
+    private Map<String, Object> scenarioInformation = new HashMap<>();
+
+    // Getters, setters, and other fields remain unchanged
+
+    // Utility methods if needed to handle JSON conversion explicitly
+    public static String toJson(Map<String, Object> map) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(map);
+    }
+
+    public static Map<String, Object> fromJson(String json) throws JsonProcessingException {
+        return objectMapper.readValue(json, Map.class);
+    }
+
 
     @JsonGetter("gameType")
     public String getGameType() {

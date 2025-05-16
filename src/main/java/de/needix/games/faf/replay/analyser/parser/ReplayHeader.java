@@ -4,7 +4,6 @@ import de.needix.games.faf.replay.api.entities.replay.Replay;
 import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
 import lombok.ToString;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,8 +30,8 @@ public class ReplayHeader {
 
         // Read scenario
         reader.readUnsignedInt();// scenario_size
-        Object scenario = reader.readLua(null);
-        replayToFill.setScenarioInformation((Map<String, Serializable>) scenario);
+        Map<String, Object> scenario = (Map<String, Object>) reader.readLua(null);
+        replayToFill.setScenarioInformation(scenario);
 
         // Read players
         int sourcesNumber = reader.readByte();
@@ -55,7 +54,7 @@ public class ReplayHeader {
         // Read armies data
         for (int i = 0; i < numberOfArmies; i++) {
             reader.readUnsignedInt();// player_data_size
-            Map<String, Serializable> playerData = (Map<String, Serializable>) reader.readLua(null);
+            Map<String, Object> playerData = (Map<String, Object>) reader.readLua(null);
             int playerSource = reader.readByte();
 
             if (playerSource != 255) {
