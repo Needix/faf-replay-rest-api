@@ -1,5 +1,6 @@
 package de.needix.games.faf.replay.api.controllers;
 
+import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
 import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
 import de.needix.games.faf.replay.api.entities.summarystats.ResourceStats;
 import de.needix.games.faf.replay.api.entities.summarystats.UnitStats;
@@ -81,8 +82,7 @@ public class PlayerController {
             @Parameter(description = "The name of the player", example = "Need")
             @PathVariable("playerName")
             String playerName) {
-//        List<ReplayPlayer> replayPlayer = playerRepository.findAllByPlayerName(playerName);
-
+        List<ReplayPlayer> replayPlayer = playerRepository.findAllByPlayerName(playerName);
         List<ReplayPlayerSummary> summaries = playerRepository.findAllSummariesByPlayerName(playerName);
 
         if (summaries.isEmpty()) {
