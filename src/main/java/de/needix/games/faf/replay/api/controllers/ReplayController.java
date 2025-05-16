@@ -20,6 +20,8 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,6 +38,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.*;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -145,20 +148,37 @@ public class ReplayController {
     })
     @GetMapping("/search")
     public ResponseEntity<Page<Long>> searchReplays(@RequestParam String query,
+                                                    @RequestParam(defaultValue = "all") String completeStatus,
+                                                    @RequestParam(required = false) List<String> mods,
+                                                    @RequestParam(required = false) List<String> gameTypes,
+                                                    @RequestParam(required = false) Integer numberOfPlayersMin,
+                                                    @RequestParam(required = false) Integer numberOfPlayersMax,
+                                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date timeFrameStart,
+                                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date timeFrameEnd,
+                                                    @RequestParam(defaultValue = "false") boolean rankedOnly,
                                                     @RequestParam(defaultValue = "0") int page,
                                                     @RequestParam(defaultValue = "10") int size) {
         LOGGER.info("Received request for search results for query '{}' with page {} and size {}", query, page, size);
 
-        if (StringUtils.isEmpty(query)) {
+        if (StringUtils.isEmpty(query) && (mods == null || mods.isEmpty()) && (gameTypes == null || gameTypes.isEmpty()) && numberOfPlayersMin == null && numberOfPlayersMax == null && timeFrameStart == null && timeFrameEnd == null && !rankedOnly) {
             return getAllReplayIds(page, size);
         }
 
         final long startTime = System.currentTimeMillis();
         try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<Long> replayPagination = replayRepository.findBySearchTerm(pageable, query);
-            LOGGER.info("Search took {} ms", System.currentTimeMillis() - startTime);
-            return ResponseEntity.ok(replayPagination);
+            Specification<Replay> spec = Specification.where(ReplaySpecification.titleContains(query))
+                    .and(ReplaySpecification.isComplete(completeStatus))
+                    .and(ReplaySpecification.hasMods(mods))
+                    .and(ReplaySpecification.hasGameTypes(gameTypes))
+                    .and(ReplaySpecification.playerCountInRange(numberOfPlayersMin, numberOfPlayersMax))
+                    .and(ReplaySpecification.timeFrame(timeFrameStart, timeFrameEnd))
+                    .and(ReplaySpecification.isRanked(rankedOnly));
+
+            Pageable pageRequest = PageRequest.of(page, size);
+            Page<Replay> result = replayRepository.findAll(spec, pageRequest);
+
+            return ResponseEntity.ok(result.map(Replay::getId)); // Return only IDs
+
         } catch (Exception e) {
             LOGGER.error("Error occurred while searching for replays: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
