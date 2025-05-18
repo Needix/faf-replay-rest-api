@@ -32,10 +32,10 @@ public class Replay {
     private boolean complete;
     private String featuredMod;
     /**
-     * 0: assination
-     * 1: domination
-     * 2: sandbox
-     * 2: sandbox
+     * 0: Assassination
+     * 1: Supremacy
+     * 2: Annihilation
+     * 2: Sandbox
      */
     private String gameType;
     private Long gameStart;
@@ -194,11 +194,13 @@ public class Replay {
         if (gameType == null) {
             return null;
         } else if (gameType.equals("0")) {
-            return "assassination";
+            return "Assassination";
         } else if (gameType.equals("1")) {
-            return "domination";
-        } else if (gameType.equals("2") || gameType.equals("3")) {
-            return "sandbox";
+            return "Supremacy";
+        } else if (gameType.equals("2")) {
+            return "Annihilation";
+        } else if (gameType.equals("3")) {
+            return "Sandbox";
         }
         return "unknown";
     }
