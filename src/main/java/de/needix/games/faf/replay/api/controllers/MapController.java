@@ -26,9 +26,16 @@ public class MapController {
 
     private static final String CACHE_DIR = "cached-maps"; // Directory for cached images
     private static final String EXTERNAL_MAP_SOURCE_URL = "https://content.faforever.com/maps/previews/large/";
+    private static final String GENERATED_MAP_PREFIX = "neroxis_map_generator_";
+    private static final String COOP_MAP_PREFIX = "faf_coop_operation";
 
     @GetMapping("/preview")
     public ResponseEntity<Resource> getMapPreview(@RequestParam String mapName) {
+        if (mapName.startsWith(GENERATED_MAP_PREFIX) || mapName.startsWith(COOP_MAP_PREFIX)) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+
         Path cachedImagePath = null;
         try {
             // Normalize map name to lowercase and remove dangerous characters
