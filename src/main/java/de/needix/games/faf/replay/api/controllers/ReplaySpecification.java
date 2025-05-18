@@ -9,16 +9,17 @@ import java.util.Date;
 import java.util.List;
 
 public class ReplaySpecification {
+    public static Specification<Replay> cursor(Long cursor) {
+        return (root, queryBuilder, criteriaBuilder) -> {
+            if (cursor == null) {
+                return null;
+            }
+            return criteriaBuilder.greaterThanOrEqualTo(root.get("id"), cursor);
+        };
+    }
+
 
     public static Specification<Replay> titleContains(String query) {
-        /*
-        "SELECT DISTINCT r.id FROM Replay r " +
-            "LEFT JOIN r.players p " +
-            "WHERE LOWER(r.replayTitle) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
-            "OR LOWER(r.gameType) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
-            "OR LOWER(r.mapName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
-            "OR LOWER(p.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) "
-         */
         return (root, queryBuilder, criteriaBuilder) -> {
             if (query == null || query.isBlank()) {
                 return null;

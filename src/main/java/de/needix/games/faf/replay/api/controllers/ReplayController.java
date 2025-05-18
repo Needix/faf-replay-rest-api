@@ -17,9 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -143,30 +143,36 @@ public class ReplayController {
     @Operation(summary = "Search replays based on a string match across various fields")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Search results retrieved successfully",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = List.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
     })
     @GetMapping("/search")
-    public ResponseEntity<Page<Long>> searchReplays(@RequestParam String query,
-                                                    @RequestParam(defaultValue = "all") String completeStatus,
-                                                    @RequestParam(required = false) List<String> mods,
-                                                    @RequestParam(required = false) List<String> gameTypes,
-                                                    @RequestParam(required = false) Integer numberOfPlayersMin,
-                                                    @RequestParam(required = false) Integer numberOfPlayersMax,
-                                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date timeFrameStart,
-                                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date timeFrameEnd,
-                                                    @RequestParam(defaultValue = "false") boolean rankedOnly,
-                                                    @RequestParam(defaultValue = "0") int page,
-                                                    @RequestParam(defaultValue = "10") int size) {
-        LOGGER.info("Received request for search results for query '{}' with page {} and size {}", query, page, size);
+    public ResponseEntity<List<Replay>> searchReplays(@RequestParam(required = false) String query,
+                                                      @RequestParam(required = false, defaultValue = "all") String completeStatus,
+                                                      @RequestParam(required = false) List<String> mods,
+                                                      @RequestParam(required = false) List<String> gameTypes,
+                                                      @RequestParam(required = false) Integer numberOfPlayersMin,
+                                                      @RequestParam(required = false) Integer numberOfPlayersMax,
+                                                      @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date timeFrameStart,
+                                                      @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date timeFrameEnd,
+                                                      @RequestParam(required = false, defaultValue = "false") boolean rankedOnly,
+                                                      @RequestParam(required = false) Long cursor,
+                                                      @RequestParam(required = false) Integer size) {
+        LOGGER.info("Received request for search with options: {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
+                query, completeStatus, mods, gameTypes, numberOfPlayersMin, numberOfPlayersMax, timeFrameStart, timeFrameEnd, rankedOnly, cursor, size);
+
+        Pageable pageable = PageRequest.of(0, size != null ? size : 20); // Default to 20 replays per request
 
         if (StringUtils.isEmpty(query) && (mods == null || mods.isEmpty()) && (gameTypes == null || gameTypes.isEmpty()) && numberOfPlayersMin == null && numberOfPlayersMax == null && timeFrameStart == null && timeFrameEnd == null && !rankedOnly) {
-            return getAllReplayIds(page, size);
+            List<Replay> replays = replayRepository.findReplaysWithCursor(cursor, pageable);
+            LOGGER.info("Found (cursor) {} results in {} ms", replays.size(), System.currentTimeMillis() - System.currentTimeMillis());
+            return ResponseEntity.ok(replays);
         }
 
         final long startTime = System.currentTimeMillis();
         try {
             Specification<Replay> spec = Specification.where(ReplaySpecification.titleContains(query))
+                    .and(ReplaySpecification.cursor(cursor))
                     .and(ReplaySpecification.isComplete(completeStatus))
                     .and(ReplaySpecification.hasMods(mods))
                     .and(ReplaySpecification.hasGameTypes(gameTypes))
@@ -174,10 +180,10 @@ public class ReplayController {
                     .and(ReplaySpecification.timeFrame(timeFrameStart, timeFrameEnd))
                     .and(ReplaySpecification.isRanked(rankedOnly));
 
-            Pageable pageRequest = PageRequest.of(page, size);
-            Page<Replay> result = replayRepository.findAll(spec, pageRequest);
+            Slice<Replay> result = replayRepository.findSlice(spec, pageable, Replay.class);
 
-            return ResponseEntity.ok(result.map(Replay::getId)); // Return only IDs
+            LOGGER.info("Found (filter) {} results in {} ms", result.getNumberOfElements(), System.currentTimeMillis() - startTime);
+            return ResponseEntity.ok(result.getContent()); // Return only IDs
 
         } catch (Exception e) {
             LOGGER.error("Error occurred while searching for replays: {}", e.getMessage(), e);
