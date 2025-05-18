@@ -123,6 +123,12 @@ public class ReplayController {
         Replay replay = new Replay();
         new ReplayAnalyser(file, replay).analyzeFAFReplay();
 
+        Optional<Replay> replayById = replayRepository.findById(replay.getId());
+        if (replayById.isPresent()) {
+            LOGGER.debug("Replay with ID {} already exists in database. Skipping database commit.", replay.getId());
+            return replayById.get();
+        }
+
         long startTime = System.currentTimeMillis();
         // Save to repository
         try {
@@ -134,7 +140,7 @@ public class ReplayController {
 
         if (LOGGER.isDebugEnabled()) {
             long endTime = System.currentTimeMillis();
-            LOGGER.info("Replay {} saved in {} ms", replay.getId(), endTime - startTime);
+            LOGGER.debug("Replay {} saved in {} ms", replay.getId(), endTime - startTime);
         }
 
         return replay;
