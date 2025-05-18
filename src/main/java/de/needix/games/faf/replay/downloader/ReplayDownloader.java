@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.concurrent.Semaphore;
 
 public class ReplayDownloader {
     public static final String BASE_URL = "https://replay.faforever.com/";
@@ -16,8 +17,10 @@ public class ReplayDownloader {
     public static final long RETRY_DELAY_MS = 1000; // Delay in milliseconds between retries
     private static final int FILES_PER_FOLDER = 10000;
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayDownloader.class);
+    private static final Semaphore DOWNLOAD_SEMAPHORE = new Semaphore(1, false);
 
     public static File downloadReplay(long replayId, boolean overwriteExistingFile) throws IOException, ReplayNotFoundException {
+
         // Determine target folder based on the file number
         long folderNumber = replayId / FILES_PER_FOLDER;
         String targetDir = BASE_DOWNLOAD_DIRECTORY + "/" + "subfolder-" + folderNumber;
@@ -46,9 +49,11 @@ public class ReplayDownloader {
         URL url = new URL(fileUrl);
         int tries = 0;
         int maxTries = 5;
+
         while (true) {
             HttpURLConnection connection = null;
             try {
+                DOWNLOAD_SEMAPHORE.acquireUninterruptibly();
                 connection = (HttpURLConnection) url.openConnection();
 
                 // Add headers to simulate a browser request
@@ -108,6 +113,7 @@ public class ReplayDownloader {
                 }
 
             } finally {
+                DOWNLOAD_SEMAPHORE.release();
                 if (connection != null) {
                     connection.disconnect();
                 }
