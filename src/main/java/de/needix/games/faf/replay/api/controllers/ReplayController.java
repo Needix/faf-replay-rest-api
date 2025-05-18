@@ -185,25 +185,6 @@ public class ReplayController {
         }
     }
 
-    @Operation(summary = "Retrieve all replay IDs with pagination")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Page of replay IDs retrieved",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Page.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
-    })
-    @GetMapping("/ids")
-    public ResponseEntity<Page<Long>> getAllReplayIds(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        LOGGER.info("Received request for page {} of {} replay IDs", page, size);
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Long> replayIdsPage = replayRepository.findReplayIds(pageable);
-        return ResponseEntity.ok(replayIdsPage);
-    }
-
     @Operation(summary = "Deletes all replays")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "All replays deleted",
