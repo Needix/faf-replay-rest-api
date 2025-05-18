@@ -108,10 +108,17 @@ public class ReplaySpecification {
         return (root, queryBuilder, criteriaBuilder) ->
                 !rankedOnly
                         ? null
-                        : criteriaBuilder.and(
-                        criteriaBuilder.equal(root.get("cheatsEnabled"), false),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("mapName")), "%ranked%"), // Example, adjust it
-                        criteriaBuilder.equal(root.get("teamLock"), true)
-                );
+                        : criteriaBuilder.equal(root.get("ranked"), true);
+                        /*
+                        assassination victory
+                        fog of war explored
+                        locked teams
+                        no AI players
+                        no cheating
+                        no prebuilt units
+                        no unit restrictions
+                        no rush disabled
+                        no sim mods
+                         */
     }
 }

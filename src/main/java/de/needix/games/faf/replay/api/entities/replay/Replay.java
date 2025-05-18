@@ -46,6 +46,7 @@ public class Replay {
     private String supComVersion;
     private String mapName;
     private boolean cheatsEnabled;
+    private boolean ranked;
     private int randomSeed;
 
     @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
