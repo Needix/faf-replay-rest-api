@@ -44,6 +44,8 @@ public class ReplayDownloader {
         String fileUrl = BASE_URL + replayId;
         LOGGER.info("Trying to download {}", fileUrl);
         URL url = new URL(fileUrl);
+        int tries = 0;
+        int maxTries = 5;
         while (true) {
             HttpURLConnection connection = null;
             try {
@@ -100,6 +102,9 @@ public class ReplayDownloader {
                     Thread.sleep(RETRY_DELAY_MS);
                 } catch (InterruptedException e2) {
                     Thread.currentThread().interrupt();
+                }
+                if (tries++ > maxTries) {
+                    throw e;
                 }
 
             } finally {
