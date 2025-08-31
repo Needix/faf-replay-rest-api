@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -53,6 +54,9 @@ public class ReplayController {
 
     private static final String HOTFOLDER_PATH = "hotfolder";
     private final ExecutorService asyncReplayAnalyserExecutorService = Executors.newFixedThreadPool(4);
+
+    @Value("${faf-replay-download-path}")
+    private String replayDownloadPath;
 
     @Autowired
     private ReplayRepository replayRepository;
@@ -329,13 +333,13 @@ public class ReplayController {
             }
         }
 
-        return downloadAndAnalyseReplay(replayId);
+        return downloadAndAnalyseReplay(replayId, force);
     }
 
-    private ResponseEntity<?> downloadAndAnalyseReplay(Long replayId) {
+    private ResponseEntity<?> downloadAndAnalyseReplay(Long replayId, boolean forceSaving) {
         File file;
         try {
-            file = ReplayDownloader.downloadReplay(replayId, true);
+            file = ReplayDownloader.downloadReplay(replayDownloadPath, replayId, false);
         } catch (ReplayNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Replay with ID " + replayId + " not found.");
@@ -365,7 +369,7 @@ public class ReplayController {
     public ResponseEntity<?> getReplayFile(@PathVariable long replayId) {
         try {
             // Use the ReplayDownloader to get the replay file
-            File replayFile = ReplayDownloader.downloadReplay(replayId, false);
+            File replayFile = ReplayDownloader.downloadReplay(replayDownloadPath, replayId, false);
 
             // Create a resource from the file
             InputStreamResource resource = new InputStreamResource(new FileInputStream(replayFile));

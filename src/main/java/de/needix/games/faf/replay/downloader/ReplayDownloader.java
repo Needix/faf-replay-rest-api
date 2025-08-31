@@ -13,17 +13,16 @@ import java.util.concurrent.Semaphore;
 public class ReplayDownloader {
     public static final String BASE_URL = "https://replay.faforever.com/";
     public static final String FILE_EXTENSION = ".fafreplay";
-    public static final String BASE_DOWNLOAD_DIRECTORY = "/mnt/faf-replays";
     public static final long RETRY_DELAY_MS = 1000; // Delay in milliseconds between retries
     private static final int FILES_PER_FOLDER = 10000;
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayDownloader.class);
     private static final Semaphore DOWNLOAD_SEMAPHORE = new Semaphore(1, false);
 
-    public static File downloadReplay(long replayId, boolean overwriteExistingFile) throws IOException, ReplayNotFoundException {
+    public static File downloadReplay(String baseDownloadDirectory, long replayId, boolean overwriteExistingFile) throws IOException, ReplayNotFoundException {
 
         // Determine target folder based on the file number
         long folderNumber = replayId / FILES_PER_FOLDER;
-        String targetDir = BASE_DOWNLOAD_DIRECTORY + "/" + "subfolder-" + folderNumber;
+        String targetDir = baseDownloadDirectory + "/" + "subfolder-" + folderNumber;
 
         ensureDirectoryExists(targetDir);
 
