@@ -60,11 +60,19 @@ public class ReplayPlayer {
      * "PL": 800,
      * "ObserverListIndex": -1
      * }
+     * info.DEV = self:GetCommandLineArgumentNumber("/deviation", 500)
+     * info.MEAN = self:GetCommandLineArgumentNumber("/mean", 1500)
+     * info.NG = self:GetCommandLineArgumentNumber("/numgames", 0)
+     * info.DIV = self:GetCommandLineArgumentString("/division", "")
+     * info.SUBDIV = self:GetCommandLineArgumentString("/subdivision", "")
+     * info.PL = math.floor(info.MEAN - 3 * info.DEV)
+     * info.PlayerClan = self:GetCommandLineArgumentString("/clan", "")
      */
 
     @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     @Setter(AccessLevel.NONE)
     private List<ReplayPlayerApm> apmPerMinute = new ArrayList<>();
+
     @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     @Setter(AccessLevel.NONE)
     private List<TargetOrder> targetOrders = new ArrayList<>();
