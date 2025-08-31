@@ -34,15 +34,22 @@ public class ModeratorEventAnalyser {
         if (message.startsWith("GpgNetSend")) {
             analyseGpgNetSendMessage(command, message);
         } else if (message.startsWith("Created a marker with the text: '")) {
+            // TODO:
             String text = message.substring(33, message.length() - 1);
 //            ChatAnalyser.handleChat(command, replayToFill, Map.of("text", text, "to", "all"), from.toString());
 
         } else if (message.startsWith("Created a ping of type ")) {
+            // TODO:
             String pingType = message.substring(24, message.length() - 1);
         } else if (message.startsWith("Self-destructed ")) {
+            // TODO:
             // Self-destructed 1 units
         } else if (message.startsWith("Switched focus army")) {
+            // TODO:
             // Switched focus army from 4 to -1!
+        } else if (message.startsWith("Is changing focus army")) {
+            // TODO:
+            // Ignoring moderator event message which does not start with 'GpgNetSend': Is changing focus army from 10 to 7 via ConExecute!
 
         } else {
             LOGGER.warn("Ignoring moderator event message which does not start with 'GpgNetSend': {}", message);
@@ -80,6 +87,12 @@ public class ModeratorEventAnalyser {
                 break;
             case "EnforceRating":
                 handleEnforceRating(data);
+                break;
+            case "OperationComplete":
+                // TODO: Unknown GpgNetSend command: Command(tick=34957, commandType=CommandType.LUA_SIM_CALLBACK, playerId=2, commandData={lua={Message=GpgNetSend with command 'OperationComplete' and data 'true,true,00:58:15,', From=5.0}, type=lua_sim_callback, lua_name=ModeratorEvent}, isDesyncCommand=true)
+                break;
+            case "TeamkillHappened":
+                // TODO: Unknown GpgNetSend command: Command(tick=53439, commandType=CommandType.LUA_SIM_CALLBACK, playerId=0, commandData={lua={Message=GpgNetSend with command 'TeamkillHappened' and data '5343.3999023438,507954,Dude_a_chu,507953,Shinsidious,', From=1.0}, type=lua_sim_callback, lua_name=ModeratorEvent}, isDesyncCommand=true)
                 break;
             default:
                 LOGGER.warn("Unknown GpgNetSend command: {}", command);
