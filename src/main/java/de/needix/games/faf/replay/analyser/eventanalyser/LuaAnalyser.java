@@ -125,6 +125,45 @@ public class LuaAnalyser implements CommandAnalyser {
             case "RingArtilleryTech3Exp":
                 handleRingArtilleryTech3Exp(command, lua);
                 break;
+            case "PingGroupClick":
+                // TODO: PingGroupClick : {ID=1.0, Location={1.0=311.02167, 2.0=19.835938, 3.0=877.73975}}
+                break;
+            case "DiplomacyHandler":
+                // TODO: DiplomacyHandler : {Action=offer, To=1.0, From=2.0}
+                break;
+            case "SetOfferDraw":
+                // TODO: SetOfferDraw : {Army=4.0, Value=true}
+                break;
+            case "OnPlayerQuery":
+                // TODO: OnPlayerQuery : {Args={ID=4.0, Volunteered=1.0}, To=-1.0, From=4.0, MsgId=2.0, Name=VolunteerVote}
+                break;
+            case "LoadIntoTransports":
+                // TODO LoadIntoTransports : {ClearCommands=true}
+                break;
+            case "RequestAlliedVictory":
+                // TODO RequestAlliedVictory : {Army=6.0, Value=false}
+                break;
+            case "GiveOrders":
+                // TODO GiveOrders : {From=1.0, unit_orders={1.0={CommandType=Move, Position={1.0=216.43355, 2.0=18.972656, 3.0=648.32074}}, 2.0={CommandType=Move, Position={1.0=214.43355, 2.0=18.972656, 3.0=650.32074}}, 3.0={CommandType=Move, Position={1.0=214.43355, 2.0=18.972656, 3.0=646.32074}}, 4.0={CommandType=Move, Position={1.0=218.43355, 2.0=18.972656, 3.0=646.32074}}, 5.0={CommandType=Move, Position={1.0=218.43355, 2.0=18.972656, 3.0=650.32074}}, 6.0={CommandType=Move, Position={1.0=214.43355, 2.0=18.972656, 3.0=650.32074}}, 7.0={EntityId=18, CommandType=Guard}}, unit_id=5}
+                break;
+            case "SetStatByCallback":
+                // TODO SetStatByCallback : {AutoDeploy=true}
+                break;
+            case "SimDialogueButtonPress":
+                // TODO SimDialogueButtonPress : {presser=7.0, buttonID=1.0, ID=1.0}
+                break;
+            case "ToggleVeteranBuilding2":
+                // TODO ToggleVeteranBuilding2 : {owner=1.0, units={1.0=247, 2.0=62, 3.0=241, 4.0=54, 6.0=88, 8.0=244, 12.0=50, 16.0=251, 17.0=94, 9.0=136, 13.0=180, 18.0=252, 19.0=207, 5.0=32, 7.0=25, 10.0=214, 14.0=176, 20.0=212, 11.0=48, 15.0=239}}
+                break;
+            case "BoxFormationSpawn":
+                // TODO BoxFormationSpawn : {army=1.0, MeshOnly=false, pos={1.0=448.92157, 2.0=23.0, 3.0=686.98254}, UnitIconCameraMode=false, veterancy=0.0, bpId=led0019, count=1.0, CreateTarmac=true, yaw=360.0}
+                break;
+            case "SyncValueFromUi":
+                // TODO SyncValueFromUi : {Specialization=ALL, id=36, AffectName=ArmorPerc}
+                break;
+            case "SpawnFireSupport":
+                // TODO SpawnFireSupport : {ArmyIndex=4.0, pos={1.0=603.9528, 2.0=20.070312, 3.0=420.832}, yes=true, id=uafsas1001}
+                break;
             default:
                 LOGGER.warn("Unknown Lua function: {} : {}", luaName, lua);
                 break;
@@ -168,6 +207,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleCopyOrders(Command command, Map<Object, Object> lua) {
+        // TODO:
         /*
         "ClearCommands" -> {Boolean@1505} true
         "Target" -> "10485789"
@@ -180,6 +220,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleOnControlGroupAssign(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("OnControlGroupAssign: {}", lua);
         /*
         {Float@1491} 1.0 -> "4194312"
@@ -189,6 +230,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleRebuild(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("Rebuild: {}", lua);
         /*
         "entity" -> "11534342"
@@ -197,6 +239,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleRingWithStorages(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("RingWithStorages: {}", lua);
         /*
         target -> 11534350
@@ -204,6 +247,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleAttackMove(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("AttackMove: {}", lua);
         /*
         Target={1.0=88.30132, 2.0=63.195312, 3.0=674.70685}, Rotation=216.51114, Clear=false
@@ -211,6 +255,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleToggleSelfDestruct(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("ToggleSelfDestruct: {}", lua);
         /*
         owner=8.0, noDelay=false
@@ -218,6 +263,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleSetRecallVote(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("SetRecallVote: {}", lua);
         /*
             Vote=true, From=12.0
@@ -225,6 +271,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleGiveUnitsToPlayer(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("GiveUnitsToPlayer: {}", lua);
         /*
         To=12.0, From=10.0
@@ -232,6 +279,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleSpawnSpecialPing(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("SpawnSpecialPing: {}", lua);
         /*
         Type=nuke, Owner=10.0, Lifetime=10.0, Ring=/textures/ui/common/game/marker/ring_nuke04-blur.dds, ArrowColor=red, Mesh=nuke_marker, Sound=Aeon_Select_Radar, Location={1.0=626.73724, 2.0=63.195312, 3.0=398.43472}
@@ -239,6 +287,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleSpawnPing(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("SpawnPing: {}", lua);
         /*
         Type=Marker, Owner=2.0, Lifetime=5.0, Ring=/game/marker/ring_yellow02-blur.dds, Color=ff66ffcc, ArrowColor=yellow, Sound=UI_Main_IG_Click, Marker=true, Name=nuke, Location={1.0=624.9585, 2.0=63.195312, 3.0=395.40198}
@@ -246,6 +295,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleImmediateHiveUpgrade(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("ImmediateHiveUpgrade: {}", lua);
         /*
         UpgradeTo=xrb0204
@@ -253,6 +303,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleUpdateMarker(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("UpdateMarker: {}", lua);
         /*
         Owner=1.0, Action=delete, ID=3.0
@@ -260,6 +311,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleAutoOvercharge(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("AutoOvercharge: {}", lua);
         /*
         auto=true
@@ -267,6 +319,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleDistributeOrders(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("DistributeOrders: {}", lua);
         /*
             ClearCommands=true, Target=5242933
@@ -274,6 +327,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleRingWithFabricators(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("RingWithFabricators: {}", lua);
         /*
         allFabricators=true, target=10485835
@@ -281,6 +335,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleValidateAssist(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("ValidateAssist: {}", lua);
         /*
         target=6291592
@@ -288,6 +343,7 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleWeaponPriorities(Command command, Map<Object, Object> lua) {
+        // TODO:
         LOGGER.trace("WeaponPriorities: {}", lua);
         /*
             SelectedUnits={1.0=2097350}, prioritiesTable={categories.EXPERIMENTAL}, name=EXP, exclusive=false
@@ -295,41 +351,51 @@ public class LuaAnalyser implements CommandAnalyser {
     }
 
     private void handleRingRadar(Command command, Map<Object, Object> lua) {
+        // TODO:
 
     }
 
     private void handleRingArtilleryTech2(Command command, Map<Object, Object> lua) {
+        // TODO:
     }
 
     private void handleFlagShield(Command command, Map<Object, Object> lua) {
+        // TODO:
         // {target=150}
     }
 
     private void handleClearCommands(Command command, Map<Object, Object> lua) {
+        // TODO:
         // {ids={}}
     }
 
     private void handleSetResourceSharing(Command command, Map<Object, Object> lua) {
+        // TODO:
         // {Army=4.0, Value=false}
     }
 
     private void handleCheatSpawnUnit(Command command, Map<Object, Object> lua) {
+        // TODO:
         // {rand=0.0, army=1.0, pos={1.0=394.5, 2.0=74.259766, 3.0=962.5}, bpId=xrl0302, veterancy=0.0, count=1.0, yaw=6.283185}
     }
 
     private void handleExtendAttackOrder(Command command, Map<Object, Object> lua) {
+        // TODO:
         // {Origin={1.0=968.8932, 2.0=17.5, 3.0=570.55066}, Radius=4.2142015}
     }
 
     private void handleSelectHighestEngineerAndAssist(Command command, Map<Object, Object> lua) {
+        // TODO:
         //{TargetId=9437213}
     }
 
     private void handleAbortNavigation(Command command, Map<Object, Object> lua) {
+        // TODO:
         // {}
     }
 
     private void handleRingArtilleryTech3Exp(Command command, Map<Object, Object> lua) {
+        // TODO:
         // {target=7340072}
     }
 }
