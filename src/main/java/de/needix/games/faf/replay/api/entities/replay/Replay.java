@@ -50,13 +50,13 @@ public class Replay {
     private int randomSeed;
 
     @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-    private Map<Integer, ReplayPlayer> players;
+    private List<ReplayPlayer> players = new ArrayList<>();
 
     @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private List<ReplayChatMessage> chatMessages = new ArrayList<>();
 
     @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-    private List<ReplayPlayerSummary> playerScores;
+    private List<ReplayPlayerSummary> playerScores = new ArrayList<>();
     /**
      * {
      * "preview": "",
