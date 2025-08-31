@@ -25,7 +25,7 @@ public class ReplayAnalyser {
     private final Replay replayToFill;
     private final LuaAnalyser luaAnalyser;
 
-    public ReplayAnalyser(File file, Replay replayToFill) throws IOException {
+    public ReplayAnalyser(File file, Replay replayToFill) {
         this.file = Objects.requireNonNull(file, "file must not be null");
         this.replayToFill = Objects.requireNonNull(replayToFill, "replayToFill must not be null");
         this.luaAnalyser = new LuaAnalyser(replayToFill);
