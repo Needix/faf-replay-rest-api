@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 
 @ToString
@@ -29,6 +30,15 @@ public class ChatAnalyser {
 
         String text = message.get("text").toString();
 
+        List<ReplayChatMessage> chatMessages = replayToFill.getChatMessages();
+        if (!chatMessages.isEmpty()) {
+            ReplayChatMessage lastChatMessage = chatMessages.get(chatMessages.size() - 1);
+            if (lastChatMessage.getMessage().equals(text) && lastChatMessage.getSender().equals(senderName) && lastChatMessage.getReceiver().equals(to)) {
+                // For some reason (probably p2p stuff) chat messages are duplicated with slightly different ticks. Ignore duplicated messages
+                return;
+            }
+        }
+
         ReplayChatMessage replayChatMessage = new ReplayChatMessage();
         replayChatMessage.setTick(command.getTick());
         replayChatMessage.setSender(senderName);
@@ -36,7 +46,7 @@ public class ChatAnalyser {
         replayChatMessage.setMessage(text);
         replayChatMessage.setMarker(message.get("camera") != null);
 
-        replayToFill.getChatMessages().add(replayChatMessage);
+        chatMessages.add(replayChatMessage);
 
         LOGGER.debug("Created chat message: {}", replayChatMessage);
     }
