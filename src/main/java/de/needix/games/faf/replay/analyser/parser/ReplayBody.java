@@ -74,15 +74,8 @@ public class ReplayBody {
     }
 
     private Command parseNextCommand(CommandType command) {
-        try {
-            Map<String, Object> parsedCommandData = CommandParser.parseCommand(command, replayReader);
-            return processCommand(command, parsedCommandData);
-        } catch (Exception e) {
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
-            throw new RuntimeException("Invalid replay: " + e.getMessage(), e);
-        }
+        Map<String, Object> parsedCommandData = CommandParser.parseCommand(command, replayReader);
+        return processCommand(command, parsedCommandData);
     }
 
     private Command processCommand(CommandType commandType, Map<String, Object> commandData) {
