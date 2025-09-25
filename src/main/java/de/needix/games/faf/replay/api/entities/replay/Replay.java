@@ -49,7 +49,7 @@ public class Replay {
     private boolean ranked;
     private int randomSeed;
 
-    @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true, mappedBy = "replay", fetch = FetchType.EAGER)
     private List<ReplayPlayer> players = new ArrayList<>();
 
     @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)

@@ -46,7 +46,7 @@ public class MoveOrderAnalyser implements CommandAnalyser {
         TargetOrder targetOrder = TargetOrder.builder()
                 .orderType(commandOrderType).targetX(x).targetY(y).targetZ(z).tick(command.getTick())
                 .build();
-        replay.getPlayers().get(command.getPlayerId() + 1).addTargetOrder(targetOrder);
+        replay.getPlayers().get(command.getPlayerId()).addTargetOrder(targetOrder);
     }
 
     @Override

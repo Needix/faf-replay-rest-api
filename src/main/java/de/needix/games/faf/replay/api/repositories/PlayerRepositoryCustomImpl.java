@@ -7,12 +7,12 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
-interface ReplayRepositoryCustom {
+interface PlayerRepositoryCustom {
     <T> Slice<T> findSlice(Specification<T> spec, Pageable pageable, Class<T> domainClass);
 }
 
 @Repository
-public class ReplayRepositoryCustomImpl implements ReplayRepositoryCustom {
+public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     @PersistenceContext
     private EntityManager entityManager;

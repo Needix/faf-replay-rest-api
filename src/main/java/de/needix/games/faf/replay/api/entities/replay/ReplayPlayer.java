@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.needix.games.faf.replay.api.JsonAttributeConverter;
 import de.needix.games.faf.replay.api.entities.order.TargetOrder;
+import de.needix.games.faf.replay.api.entities.player.Player;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,15 +18,24 @@ import java.util.Map;
 @Setter
 @Getter
 @Entity
+@Table(indexes = @Index(columnList = "name"))
 public class ReplayPlayer {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String name;
-    private int playerId;
+
+    private int playerIdInReplay;
+
+    private Boolean victory;
+
+    @ManyToOne
+    private Replay replay;
+
+    @ManyToOne(cascade = jakarta.persistence.CascadeType.ALL)
+    private Player player;
 
     private double massShared;
     private double energyShared;

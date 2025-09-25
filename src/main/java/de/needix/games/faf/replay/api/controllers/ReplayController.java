@@ -1,7 +1,12 @@
 package de.needix.games.faf.replay.api.controllers;
 
+import de.needix.games.faf.replay.analyser.PlayerSummaryUpdater;
 import de.needix.games.faf.replay.analyser.ReplayAnalyser;
+import de.needix.games.faf.replay.api.entities.player.Player;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
+import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
+import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
+import de.needix.games.faf.replay.api.repositories.PlayerRepository;
 import de.needix.games.faf.replay.api.repositories.ReplayRepository;
 import de.needix.games.faf.replay.downloader.ReplayDownloader;
 import de.needix.games.faf.replay.exceptions.ReplayNotFoundException;
@@ -59,6 +64,9 @@ public class ReplayController {
     private String replayDownloadPath;
 
     @Autowired
+    private PlayerRepository playerRepository;
+
+    @Autowired
     private ReplayRepository replayRepository;
 
     @Operation(summary = "Reanalyzes all replays saved as files",
@@ -89,6 +97,139 @@ public class ReplayController {
         LOGGER.info("Reanalysis tasks for replays have been submitted.");
         return ResponseEntity.ok("Reanalysis of all replays has been started.");
     }
+
+    private Replay createDatabaseReplayEntity(File file, boolean forceSaving) throws IOException {
+        // Analyze the replay file
+        Replay replay = new Replay();
+        new ReplayAnalyser(file, replay).analyzeFAFReplay();
+
+        if (!forceSaving) {
+            Optional<Replay> replayById = replayRepository.findById(replay.getId());
+            if (replayById.isPresent()) {
+                LOGGER.debug("Replay with ID {} already exists in database. Skipping database commit.", replay.getId());
+                return replayById.get();
+            }
+        }
+
+        saveReplayInDatabase(replay);
+//        savePlayersInDatabase(replay);
+
+        return replay;
+    }
+
+    private void saveReplayInDatabase(Replay replay) {
+        replay.getPlayers().forEach(e -> toDatabasePlayer(e, getPlayerSummary(replay.getPlayerScores(), e)));
+
+        long startTime = System.currentTimeMillis();
+        // Save to repository
+        try {
+            replayRepository.save(replay);
+        } catch (Exception e) {
+            LOGGER.error("Failed to save replay to database: {}", e.getMessage(), e);
+            throw e;
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            long endTime = System.currentTimeMillis();
+            LOGGER.debug("Replay {} saved in {} ms", replay.getId(), endTime - startTime);
+        }
+    }
+
+    private Player toDatabasePlayer(ReplayPlayer replayPlayer, Optional<ReplayPlayerSummary> playerSummary) {
+        String ownerId = (String) replayPlayer.getArmyInformation().get("OwnerID");
+        if (ownerId == null) {
+            ownerId = "noOwnerId_" + replayPlayer.getName();
+        }
+
+        Player databasePlayer = playerRepository.findPlayerByOwnerId(ownerId);
+        if (databasePlayer == null) {
+            databasePlayer = new Player();
+            databasePlayer.setName(replayPlayer.getName());
+            databasePlayer.setOwnerId(ownerId);
+        }
+        replayPlayer.setPlayer(databasePlayer);
+        databasePlayer.getReplayPlayers().add(replayPlayer);
+        Player finalDatabasePlayer = databasePlayer;
+
+        playerSummary.ifPresent(e -> finalDatabasePlayer.getReplayPlayerSummaries().add(e));
+        PlayerSummaryUpdater.updatePlayerSummary(databasePlayer);
+
+        return databasePlayer;
+    }
+
+    private Optional<ReplayPlayerSummary> getPlayerSummary(List<ReplayPlayerSummary> playerScores, ReplayPlayer replayPlayer) {
+        return playerScores.stream().filter(replayPlayerSummary -> replayPlayerSummary.getName().equalsIgnoreCase(replayPlayer.getName())).findAny();
+    }
+
+    private void savePlayersInDatabase(Replay replay) {
+        long startTime = System.currentTimeMillis();
+        // Save to repository
+        try {
+            playerRepository.saveAll(replay.getPlayers().stream().map(e -> toDatabasePlayer(e, getPlayerSummary(replay.getPlayerScores(), e))).toList());
+        } catch (Exception e) {
+            LOGGER.error("Failed to save players to database: {}", e.getMessage(), e);
+            throw e;
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            long endTime = System.currentTimeMillis();
+            LOGGER.debug("Players for replay {} saved in {} ms", replay.getId(), endTime - startTime);
+        }
+    }
+
+    @Operation(summary = "Reanalyzes all replays in the database",
+            description = "This endpoint retrieves all replay IDs from the database and triggers an asynchronous reanalysis of all replays using multiple threads.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reanalysis process started successfully"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @PostMapping("/reanalyze-all")
+    public ResponseEntity<?> reanalyzeAllReplays() {
+        LOGGER.info("Reanalysis of all replays in database initiated.");
+
+        try {
+            // Fetch all replay IDs
+            Pageable pageable = Pageable.ofSize(1000);
+            Slice<Long> replayIds = replayRepository.getAllIds(pageable);
+
+            while (replayIds.hasNext()) {
+                final Slice<Long> finalReplayIds = replayIds;
+                asyncReplayAnalyserExecutorService.submit(() -> {
+                    finalReplayIds.forEach(e -> downloadAndAnalyseReplay(e, true));
+                });
+                pageable = replayIds.nextOrLastPageable();
+                replayIds = replayRepository.getAllIds(pageable);
+            }
+
+            LOGGER.info("Reanalysis tasks for replays have been submitted.");
+            return ResponseEntity.ok("Reanalysis of all replays has been started.");
+        } catch (Exception e) {
+            LOGGER.error("Error occurred while starting reanalysis: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while starting the reanalysis: " + e.getMessage());
+        }
+    }
+
+    private ResponseEntity<?> downloadAndAnalyseReplay(Long replayId, boolean forceSaving) {
+        File file;
+        try {
+            file = ReplayDownloader.downloadReplay(replayDownloadPath, replayId, false);
+        } catch (ReplayNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Replay with ID " + replayId + " not found.");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to download replay with ID " + replayId + ": " + e.getMessage());
+        }
+
+        try {
+            return ResponseEntity.ok(createDatabaseReplayEntity(file, forceSaving));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to analyze replay with ID " + replayId + ": " + e.getMessage());
+        }
+    }
+
     @Operation(summary = "Upload a FAF replay file",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The replay file to upload. Must be a `.fafreplay` file.",
@@ -134,7 +275,7 @@ public class ReplayController {
         // Analyze the replay file and save to database
         Replay replay;
         try {
-            replay = createDatabaseReplayEntity(tempFile.toFile());
+            replay = createDatabaseReplayEntity(tempFile.toFile(), false);
         } catch (IOException e) {
             LOGGER.error("Failed to analyze and save replay: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to analyze or save replay data.");
@@ -148,34 +289,6 @@ public class ReplayController {
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(replay);
-    }
-
-    private Replay createDatabaseReplayEntity(File file) throws IOException {
-        // Analyze the replay file
-        Replay replay = new Replay();
-        new ReplayAnalyser(file, replay).analyzeFAFReplay();
-
-        Optional<Replay> replayById = replayRepository.findById(replay.getId());
-        if (replayById.isPresent()) {
-            LOGGER.debug("Replay with ID {} already exists in database. Skipping database commit.", replay.getId());
-            return replayById.get();
-        }
-
-        long startTime = System.currentTimeMillis();
-        // Save to repository
-        try {
-            replayRepository.save(replay);
-        } catch (Exception e) {
-            LOGGER.error("Failed to save replay to database: {}", e.getMessage(), e);
-            throw e;
-        }
-
-        if (LOGGER.isDebugEnabled()) {
-            long endTime = System.currentTimeMillis();
-            LOGGER.debug("Replay {} saved in {} ms", replay.getId(), endTime - startTime);
-        }
-
-        return replay;
     }
 
     @Operation(summary = "Search replays based on a string match across various fields")
@@ -364,26 +477,6 @@ public class ReplayController {
         return downloadAndAnalyseReplay(replayId, force);
     }
 
-    private ResponseEntity<?> downloadAndAnalyseReplay(Long replayId, boolean forceSaving) {
-        File file;
-        try {
-            file = ReplayDownloader.downloadReplay(replayDownloadPath, replayId, false);
-        } catch (ReplayNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Replay with ID " + replayId + " not found.");
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to download replay with ID " + replayId + ": " + e.getMessage());
-        }
-
-        try {
-            return ResponseEntity.ok(createDatabaseReplayEntity(file));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to analyze replay with ID " + replayId + ": " + e.getMessage());
-        }
-    }
-
     @Operation(summary = "Download a FAF replay file by its ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Replay downloaded successfully",
@@ -472,7 +565,7 @@ public class ReplayController {
                     return;
                 }
 
-                createDatabaseReplayEntity(file);
+                createDatabaseReplayEntity(file, true);
 
                 LOGGER.debug("Successfully processed replay file: {}", file.getName());
                 Files.delete(file.toPath());

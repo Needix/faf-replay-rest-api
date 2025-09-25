@@ -3,6 +3,8 @@ package de.needix.games.faf.replay.api.entities.summarystats;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.needix.games.faf.replay.analyser.parser.BlueprintsDeserializer;
+import de.needix.games.faf.replay.api.entities.player.Player;
+import de.needix.games.faf.replay.api.entities.replay.Replay;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,13 +18,18 @@ import java.util.Map;
 @ToString
 public class ReplayPlayerSummary {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String type; // Example: "Human"
 
     private String name; // Example: "N0Y0U"
     private int faction; // Example: 2
+
+    @ManyToOne
+    private Replay replay;
+
+    @ManyToOne
+    private Player player;
 
     @JsonProperty("Defeated")
     private double defeated;

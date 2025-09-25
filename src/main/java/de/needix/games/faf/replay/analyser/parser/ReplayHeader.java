@@ -4,7 +4,8 @@ import de.needix.games.faf.replay.api.entities.replay.Replay;
 import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
 import lombok.ToString;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @ToString
@@ -35,14 +36,16 @@ public class ReplayHeader {
 
         // Read players
         int sourcesNumber = reader.readByte();
-        HashMap<Integer, ReplayPlayer> players = new HashMap<>();
+        List<ReplayPlayer> players = new ArrayList<>();
         for (int i = 0; i < sourcesNumber; i++) {
             String name = reader.readString();
             int playerType = reader.readUnsignedInt();
             ReplayPlayer replayPlayer = new ReplayPlayer();
+            replayPlayer.setId(replayToFill.getId() + "_" + name);
             replayPlayer.setName(name);
-            replayPlayer.setPlayerId(i + 1);
-            players.put(i + 1, replayPlayer);
+            replayPlayer.setPlayerIdInReplay(i + 1);
+            replayPlayer.setReplay(replayToFill);
+            players.add(replayPlayer);
         }
 
         // Read cheats enabled
@@ -58,7 +61,7 @@ public class ReplayHeader {
             int playerSource = reader.readByte();
 
             if (playerSource != 255) {
-                players.get(playerSource + 1).setArmyInformation(playerData);
+                players.get(playerSource).setArmyInformation(playerData);
                 reader.read(1); // Skip 1 byte
             }
         }

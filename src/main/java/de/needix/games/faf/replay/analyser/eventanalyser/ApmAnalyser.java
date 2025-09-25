@@ -58,7 +58,7 @@ public class ApmAnalyser implements CommandAnalyser {
 
             // Prepare APM buckets (default all 0 APMs initially)
             int totalMinutes = (int) Math.ceil((double) lastTick / ticksPerMinute);
-            int[] actionsPerMinute = new int[totalMinutes];
+            int[] actionsPerMinute = new int[totalMinutes + 1];
 
             // Populate actions per minute bucket
             for (int tick : playerTicks) {
@@ -77,8 +77,8 @@ public class ApmAnalyser implements CommandAnalyser {
         }
 
         // Persist the calculated APMs back to ReplayPlayer objects
-        for (ReplayPlayer player : replay.getPlayers().values()) {
-            int playerId = player.getPlayerId();
+        for (ReplayPlayer player : replay.getPlayers()) {
+            int playerId = player.getPlayerIdInReplay();
             List<Double> playerApmsList = playerApms.getOrDefault(playerId, new ArrayList<>());
             for (int minute = 0; minute < playerApmsList.size(); minute++) {
                 player.addApmPerMinute(minute, playerApmsList.get(minute));

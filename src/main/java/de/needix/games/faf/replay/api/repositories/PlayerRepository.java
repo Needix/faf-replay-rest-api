@@ -1,25 +1,24 @@
 package de.needix.games.faf.replay.api.repositories;
 
-import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
-import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
-import org.springframework.data.domain.Page;
+import de.needix.games.faf.replay.api.entities.player.Player;
+import de.needix.games.faf.replay.api.entities.player.PlayerSummary;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface PlayerRepository extends CrudRepository<ReplayPlayer, Long> {
+public interface PlayerRepository extends CrudRepository<Player, Long>, JpaSpecificationExecutor<Player>, PlayerRepositoryCustom {
 
-    @Query("SELECT DISTINCT p.name FROM ReplayPlayer p WHERE p.name IS NOT NULL ORDER BY p.name")
-    Page<String> findDistinctPlayerNames(Pageable pageable);
+    @Query("SELECT p FROM Player p WHERE p.ownerId = :ownerId")
+    Player findPlayerByOwnerId(@Param("ownerId") String ownerId);
 
-    @Query("SELECT p FROM ReplayPlayer p WHERE p.name = :playerName")
-    List<ReplayPlayer> findAllByPlayerName(String playerName);
+    @Query("SELECT r FROM Replay r WHERE (:cursor IS NULL OR r.id > :cursor) " +
+            "ORDER BY r.id ASC")
+    List<Player> findPlayersWithCursor(@Param("cursor") Long cursor, Pageable pageable);
 
-    @Query("SELECT s FROM ReplayPlayerSummary s WHERE s.name = :playerName")
-    List<ReplayPlayerSummary> findAllSummariesByPlayerName(String playerName);
-
-    @Query("SELECT DISTINCT p.name FROM ReplayPlayer p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) ORDER BY p.name")
-    Page<String> searchReplayPlayer(Pageable pageable, String searchTerm);
+    @Query("SELECT ps from PlayerSummary ps where ps.name = :name")
+    PlayerSummary findReplayPlayerSummary(@Param("cursor") String name);
 }

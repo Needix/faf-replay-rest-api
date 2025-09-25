@@ -19,6 +19,7 @@ public class ModeratorEventAnalyser {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModeratorEventAnalyser.class);
 
     private final static Pattern GPG_NET_SEND_PATTERN = Pattern.compile(".*?'(.*?)'.*'(.*)'");
+    private final static Pattern GAME_RESULT_PATTERN = Pattern.compile(".*?(\\d+),(.*?) (-*)(\\d+),(.*)");
 
     private final Replay replayToFill;
 
@@ -113,6 +114,8 @@ public class ModeratorEventAnalyser {
                     }
             );
 
+            replayPlayerSummaries.forEach(replayPlayerSummary -> replayPlayerSummary.setId(this.replayToFill.getId() + "_" + replayPlayerSummary.getName()));
+
             LOGGER.debug("Deserialized replay player summaries: {}", replayPlayerSummaries);
 
             this.replayToFill.setPlayerScores(replayPlayerSummaries);
@@ -127,6 +130,19 @@ public class ModeratorEventAnalyser {
 
     private void handleGameResult(String resultData) {
         LOGGER.debug("GameResult: {}", resultData);
+
+        Matcher matcher = GAME_RESULT_PATTERN.matcher(resultData);
+        if (!matcher.find()) {
+            LOGGER.warn("GameResult did not match pattern: {}", resultData);
+            return;
+        }
+        int playerId = Integer.parseInt(matcher.group(1));
+        if (playerId < 1 || playerId > this.replayToFill.getPlayers().size()) {
+            return;
+        }
+
+        String victoryOrDefeat = matcher.group(2);
+        this.replayToFill.getPlayers().get(playerId - 1).setVictory("victory".equals(victoryOrDefeat));
     }
 
     private void handleEnforceRating(String noData) {

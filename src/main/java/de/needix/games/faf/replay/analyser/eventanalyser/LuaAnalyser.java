@@ -191,13 +191,13 @@ public class LuaAnalyser implements CommandAnalyser {
             float energy = (float) lua.get("Energy");
             float mass = (float) lua.get("Mass");
 
-            ReplayPlayer fromPlayer = replayToFill.getPlayers().get(fromId);
+            ReplayPlayer fromPlayer = fromId - 1 < replayToFill.getPlayers().size() ? replayToFill.getPlayers().get(fromId - 1) : null;
             if (fromPlayer != null) {
                 fromPlayer.increaseEnergyShared(energy);
                 fromPlayer.increaseMassShared(mass);
                 LOGGER.debug("Increased energy and mass shared by player {} by {} and {} respectively", fromId, energy, mass);
             }
-            ReplayPlayer toPlayer = replayToFill.getPlayers().get(toId);
+            ReplayPlayer toPlayer = toId - 1 < replayToFill.getPlayers().size() ? replayToFill.getPlayers().get(toId - 1) : null;
             if (toPlayer != null) {
                 toPlayer.increaseMassReceived(mass);
                 toPlayer.increaseEnergyReceived(energy);
