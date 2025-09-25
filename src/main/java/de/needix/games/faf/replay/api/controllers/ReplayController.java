@@ -61,6 +61,34 @@ public class ReplayController {
     @Autowired
     private ReplayRepository replayRepository;
 
+    @Operation(summary = "Reanalyzes all replays saved as files",
+            description = "This endpoint reanalyzes all saved replay files and triggers an asynchronous reanalysis of all replays using multiple threads.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reanalysis process started successfully"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @PostMapping("/reanalyze-all-files")
+    public ResponseEntity<?> reanalyzeAllReplayFiles() {
+        LOGGER.info("Reanalysis of all replay files initiated.");
+
+        asyncReplayAnalyserExecutorService.submit(() ->
+        {
+            try {
+                ReplayDownloader.getDownloadedReplays(replayDownloadPath, e -> {
+                    try {
+                        createDatabaseReplayEntity(e.toFile(), true);
+                    } catch (Exception ex) {
+                        LOGGER.error("Error occurred in reanalysis: ", ex);
+                    }
+                });
+            } catch (Exception ex) {
+                LOGGER.error("Error occurred in reanalysis: ", ex);
+            }
+        });
+
+        LOGGER.info("Reanalysis tasks for replays have been submitted.");
+        return ResponseEntity.ok("Reanalysis of all replays has been started.");
+    }
     @Operation(summary = "Upload a FAF replay file",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The replay file to upload. Must be a `.fafreplay` file.",

@@ -7,8 +7,11 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.MessageFormat;
 import java.util.concurrent.Semaphore;
+import java.util.function.Consumer;
 
 public class ReplayDownloader {
     public static final String BASE_URL = "https://replay.faforever.com/";
@@ -17,6 +20,20 @@ public class ReplayDownloader {
     private static final int FILES_PER_FOLDER = 10000;
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayDownloader.class);
     private static final Semaphore DOWNLOAD_SEMAPHORE = new Semaphore(1, false);
+
+    public static void getDownloadedReplays(String baseDownloadDirectory, Consumer<Path> fileConsumer) throws IOException {
+        Path startPath = Paths.get(baseDownloadDirectory);
+
+        Files.walkFileTree(startPath, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                // Pass the file to the consumer
+                fileConsumer.accept(file);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+    }
 
     public static File downloadReplay(String baseDownloadDirectory, long replayId, boolean overwriteExistingFile) throws IOException, ReplayNotFoundException {
 
