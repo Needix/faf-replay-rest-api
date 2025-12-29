@@ -140,7 +140,7 @@ public class ReplayDownloader {
     private static void ensureDirectoryExists(String downloadDirectory) throws FileNotFoundException {
         File dir = new File(downloadDirectory);
         if (!dir.exists() && !dir.mkdirs()) {
-            throw new FileNotFoundException("Failed to create base download directory: " + downloadDirectory);
+            throw new FileNotFoundException("Failed to create base download directory (probably missing permissions): " + downloadDirectory);
         }
     }
 }
