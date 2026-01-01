@@ -9,14 +9,12 @@ import de.needix.games.faf.replay.api.entities.replay.Replay;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.util.Map;
 
 @Setter
 @Getter
 @Entity
-@ToString
 public class ReplayPlayerSummary {
     @Id
     private String id;
@@ -50,4 +48,14 @@ public class ReplayPlayerSummary {
 
     @Embedded
     private UnitStats units;
+
+    @Override
+    public String toString() {
+        return "ReplayPlayerSummary{" +
+                "id='" + id + '\'' +
+                ", type='" + type + '\'' +
+                ", name='" + name + '\'' +
+                ", faction=" + faction +
+                '}';
+    }
 }

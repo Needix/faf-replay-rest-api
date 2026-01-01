@@ -5,7 +5,6 @@ import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@ToString
 public class Player {
     @Id
     private String ownerId;
@@ -29,4 +27,12 @@ public class Player {
     @OneToOne(cascade = jakarta.persistence.CascadeType.ALL)
     @JoinColumn(name = "player_summary_id")
     private PlayerSummary playerSummary;
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "ownerId='" + ownerId + '\'' +
+                ", name='" + name + '\'' +
+                '}';
+    }
 }

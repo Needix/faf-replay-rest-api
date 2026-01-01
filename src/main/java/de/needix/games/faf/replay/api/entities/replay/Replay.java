@@ -9,14 +9,12 @@ import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.util.*;
 
 @Getter
 @Setter
 @Entity
-@ToString
 public class Replay {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -203,5 +201,13 @@ public class Replay {
             return "Sandbox";
         }
         return "unknown";
+    }
+
+    @Override
+    public String toString() {
+        return "Replay{" +
+                "id=" + id +
+                ", replayTitle='" + replayTitle + '\'' +
+                '}';
     }
 }

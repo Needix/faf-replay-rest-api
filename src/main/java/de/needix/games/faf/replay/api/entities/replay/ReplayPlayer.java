@@ -124,4 +124,13 @@ public class ReplayPlayer {
     public void increaseEnergyReceived(double amount) {
         energyReceived += amount;
     }
+
+    @Override
+    public String toString() {
+        return "ReplayPlayer{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", playerIdInReplay=" + playerIdInReplay +
+                '}';
+    }
 }
