@@ -18,7 +18,8 @@ import java.util.Map;
 @ToString
 public class FactionStats {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
     private Faction faction;
     private int totalReplays;
