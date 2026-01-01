@@ -36,7 +36,6 @@ public class ReplayDownloader {
     }
 
     public static File downloadReplay(String baseDownloadDirectory, long replayId, boolean overwriteExistingFile) throws IOException, ReplayNotFoundException {
-
         // Determine target folder based on the file number
         long folderNumber = replayId / FILES_PER_FOLDER;
         String targetDir = baseDownloadDirectory + "/" + "subfolder-" + folderNumber;
