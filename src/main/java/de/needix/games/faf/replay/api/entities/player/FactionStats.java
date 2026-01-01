@@ -33,19 +33,19 @@ public class FactionStats {
     private List<Double> defeatedStats = new ArrayList<>();
 
     @ElementCollection
-    @CollectionTable(name = "played_game_type_count", joinColumns = @JoinColumn(name = "faction_stats_id"))
+    @CollectionTable(name = "faction_stats_played_game_type_count", joinColumns = @JoinColumn(name = "faction_stats_id"))
     @MapKeyColumn(name = "game_type")
     @Column(name = "count")
     private Map<String, Integer> playedGameTypeCount = new HashMap<>();
 
     @ElementCollection
-    @CollectionTable(name = "won_game_type_count", joinColumns = @JoinColumn(name = "faction_stats_id"))
+    @CollectionTable(name = "faction_stats_won_game_type_count", joinColumns = @JoinColumn(name = "faction_stats_id"))
     @MapKeyColumn(name = "game_type")
     @Column(name = "count")
     private Map<String, Integer> wonGameTypeCount = new HashMap<>();
 
     @ElementCollection
-    @CollectionTable(name = "played_color_count", joinColumns = @JoinColumn(name = "faction_stats_id"))
+    @CollectionTable(name = "faction_stats_played_color_count", joinColumns = @JoinColumn(name = "faction_stats_id"))
     @MapKeyColumn(name = "color")
     @Column(name = "count")
     private Map<Integer, Integer> playedColorCount = new HashMap<>();
