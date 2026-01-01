@@ -1,17 +1,24 @@
-package de.needix.games.faf.replay.analyser;
+package de.needix.games.faf.replay.api.summary;
 
-import de.needix.games.faf.replay.api.entities.player.FactionStats;
-import de.needix.games.faf.replay.api.entities.player.Player;
-import de.needix.games.faf.replay.api.entities.player.PlayerRating;
-import de.needix.games.faf.replay.api.entities.player.PlayerSummary;
+import de.needix.games.faf.replay.api.entities.player.*;
 import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
 import de.needix.games.faf.replay.api.entities.replay.ReplayPlayerApm;
 import de.needix.games.faf.replay.api.entities.summarystats.*;
+import de.needix.games.faf.replay.api.entities.summarystats.UnitStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class PlayerSummaryUpdater {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PlayerSummaryUpdater.class);
+
     public static void updatePlayerSummary(Player player) {
+        LOGGER.debug("Updating player summary for player {}", player.getName());
+
         PlayerSummary playerSummary = player.getPlayerSummary();
         if (playerSummary == null) {
             playerSummary = new PlayerSummary();
@@ -20,35 +27,36 @@ public class PlayerSummaryUpdater {
             player.setPlayerSummary(playerSummary);
         }
 
-        Map<Date, String> playerNameHistory = new HashMap<>();
-        List<PlayerRating> ratingHistory = new ArrayList<>();
-        List<Date> gamesPlayedHistory = new ArrayList<>();
+        Map<Date, String> playerNameHistory = playerSummary.getPlayerNameHistory();
+        playerNameHistory.clear();
+        List<PlayerRating> ratingHistory = playerSummary.getRatingHistory();
+        ratingHistory.clear();
+        List<Date> gamesPlayedHistory = playerSummary.getGamesPlayedHistory();
+        gamesPlayedHistory.clear();
+        Map<Faction, FactionStats> factionStatsMap = playerSummary.getFactionStats();
+        factionStatsMap.clear();
 
-        Map<Integer, FactionStats> factionStatsMap = new HashMap<>();
-
-        List<ReplayPlayerSummary> replayPlayerSummaries = player.getReplayPlayerSummaries();
+        Set<ReplayPlayerSummary> replayPlayerSummaries = player.getReplayPlayerSummaries();
         for (ReplayPlayerSummary replayPlayerSummary : replayPlayerSummaries) {
             Date date = new Date(replayPlayerSummary.getReplay().getGameStart() * 1000);
 
-            int faction = replayPlayerSummary.getFaction();
+            Faction faction = replayPlayerSummary.getFaction();
 
             GeneralStats generalStats = replayPlayerSummary.getGeneral();
             ResourceStats resourceStats = replayPlayerSummary.getResources();
             UnitStats unitStats = replayPlayerSummary.getUnits();
             Map<String, BlueprintStats> blueprintStatsMap = replayPlayerSummary.getBlueprints();
 
-            double defeatedTimes = replayPlayerSummary.getDefeated();
-
             FactionStats factionStats = factionStatsMap.computeIfAbsent(faction, e -> new FactionStats());
-            factionStats.setId(player.getOwnerId() + "_" + faction);
-            factionStats.getDefeatedStats().add(defeatedTimes);
+            factionStats.setFaction(faction);
+            factionStats.getDefeatedStats().add(replayPlayerSummary.getDefeated());
             factionStats.setTotalEnergyReceived(factionStats.getTotalEnergyReceived() + resourceStats.getEnergyIn().getTotal());
             factionStats.setTotalEnergyShared(factionStats.getTotalEnergyShared() + resourceStats.getEnergyOut().getTotal());
             factionStats.setTotalMassReceived(factionStats.getTotalMassReceived() + resourceStats.getMassIn().getTotal());
             factionStats.setTotalMassShared(factionStats.getTotalMassShared() + resourceStats.getMassOut().getTotal());
         }
 
-        List<ReplayPlayer> allReplayPlayers = player.getReplayPlayers();
+        Set<ReplayPlayer> allReplayPlayers = player.getReplayPlayers();
         for (ReplayPlayer replayPlayer : allReplayPlayers) {
             Date date = new Date(replayPlayer.getReplay().getGameStart() * 1000);
             gamesPlayedHistory.add(date);
@@ -69,21 +77,27 @@ public class PlayerSummaryUpdater {
             Number mean = (Number) armyInformation.get("MEAN");
             PlayerRating playerRating = new PlayerRating();
             playerRating.setDate(date);
-            playerRating.setMean(mean.intValue());
-            playerRating.setGamePlayed(gamesPlayed.intValue());
-            playerRating.setRating(placement.intValue());
+            playerRating.setMean(mean == null ? -1 : mean.intValue());
+            playerRating.setGamePlayed(gamesPlayed == null ? -1 : gamesPlayed.intValue());
+            playerRating.setRating(placement == null ? -1 : placement.intValue());
             ratingHistory.add(playerRating);
 
             String playerName = (String) armyInformation.get("PlayerName");
             playerNameHistory.put(date, playerName);
-
-            FactionStats factionStats = factionStatsMap.computeIfAbsent(faction.intValue(), e -> new FactionStats());
         }
+        cleanPlayerNameHistory(playerNameHistory);
+    }
 
-        playerSummary.setPlayerNameHistory(playerNameHistory);
-        playerSummary.setFactionStats(factionStatsMap.values().stream().toList());
-        playerSummary.setRatingHistory(ratingHistory);
-        playerSummary.setGamesPlayedHistory(gamesPlayedHistory);
+    private static void cleanPlayerNameHistory(Map<Date, String> playerNameHistory) {
+        playerNameHistory.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .filter(entry -> entry.getValue() != null)
+                .filter(entry ->
+                        !entry.getValue().equals(PreviousStringHolder.PREVIOUS)
+                )
+                .peek(entry -> PreviousStringHolder.PREVIOUS = entry.getValue())
+                .map(Map.Entry::getKey)
+                .forEach(playerNameHistory::remove);
     }
 
     private void addUnitStats(UnitStats combined, UnitStats toAdd) {
@@ -159,5 +173,10 @@ public class PlayerSummaryUpdater {
             combined.getStorage().setMaxEnergy(combined.getStorage().getMaxEnergy() + toAdd.getStorage().getMaxEnergy());
             combined.getStorage().setStoredEnergy(combined.getStorage().getStoredEnergy() + toAdd.getStorage().getStoredEnergy());
         }
+    }
+
+    // Helper class to hold the previous string
+    static class PreviousStringHolder {
+        static String PREVIOUS = null;
     }
 }

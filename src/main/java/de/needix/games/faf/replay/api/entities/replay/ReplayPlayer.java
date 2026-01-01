@@ -34,7 +34,7 @@ public class ReplayPlayer {
     @ManyToOne
     private Replay replay;
 
-    @ManyToOne(cascade = jakarta.persistence.CascadeType.ALL)
+    @ManyToOne
     private Player player;
 
     private double massShared;
@@ -123,6 +123,18 @@ public class ReplayPlayer {
 
     public void increaseEnergyReceived(double amount) {
         energyReceived += amount;
+    }
+
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ReplayPlayer that = (ReplayPlayer) o;
+        return id.equals(that.id);
     }
 
     @Override

@@ -6,8 +6,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -19,12 +19,12 @@ public class Player {
     private String name;
 
     @OneToMany(mappedBy = "player", fetch = FetchType.EAGER)
-    private List<ReplayPlayer> replayPlayers = new ArrayList<>();
+    private Set<ReplayPlayer> replayPlayers = new LinkedHashSet<>();
 
-    @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, mappedBy = "player", fetch = FetchType.EAGER)
-    private List<ReplayPlayerSummary> replayPlayerSummaries = new ArrayList<>();
+    @OneToMany(mappedBy = "player", fetch = FetchType.EAGER)
+    private Set<ReplayPlayerSummary> replayPlayerSummaries = new LinkedHashSet<>();
 
-    @OneToOne(cascade = jakarta.persistence.CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "player_summary_id")
     private PlayerSummary playerSummary;
 

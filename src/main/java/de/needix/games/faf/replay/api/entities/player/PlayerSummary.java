@@ -18,7 +18,8 @@ public class PlayerSummary {
     private String name;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<FactionStats> factionStats = new ArrayList<>();
+    @MapKeyEnumerated(EnumType.STRING)
+    private Map<Faction, FactionStats> factionStats = new EnumMap<>(Faction.class);
 
     @ElementCollection
     @CollectionTable(name = "player_name_history", joinColumns = @JoinColumn(name = "player_summary_id"))
@@ -39,6 +40,6 @@ public class PlayerSummary {
 //    Map<String, Object> armyInformation = replayPlayer.getArmyInformation();
 
     public long getTotalReplays() {
-        return factionStats.stream().mapToLong(FactionStats::getTotalReplays).sum();
+        return factionStats.values().stream().mapToLong(FactionStats::getTotalReplays).sum();
     }
 }

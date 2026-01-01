@@ -16,6 +16,8 @@ public interface ReplayRepository extends JpaRepository<Replay, Long>, JpaSpecif
     @Query("SELECT r FROM Replay r JOIN r.players p WHERE p.name = :playerName order by r.gameStart asc")
     List<Replay> findAllReplaysByPlayerName(@Param("playerName") String playerName);
 
+    Slice<Replay> findByNewReplayTrue(Pageable pageable);
+
     @Query("SELECT r FROM Replay r WHERE (:cursor IS NULL OR r.id > :cursor) " +
             "ORDER BY r.id ASC")
     List<Replay> findReplaysWithCursor(@Param("cursor") Long cursor, Pageable pageable);

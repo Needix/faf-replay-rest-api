@@ -23,6 +23,7 @@ public class Replay {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date importDate;
+    private boolean newReplay = true;
 
     private String replayTitle;
     private int replayVersion;
@@ -47,14 +48,14 @@ public class Replay {
     private boolean ranked;
     private int randomSeed;
 
-    @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true, mappedBy = "replay", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "replay", fetch = FetchType.EAGER)
     private List<ReplayPlayer> players = new ArrayList<>();
 
-    @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReplayChatMessage> chatMessages = new ArrayList<>();
 
-    @OneToMany(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-    private List<ReplayPlayerSummary> playerScores = new ArrayList<>();
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "replay", fetch = FetchType.EAGER)
+    private Set<ReplayPlayerSummary> playerScores = new LinkedHashSet<>();
     /**
      * {
      * "preview": "",

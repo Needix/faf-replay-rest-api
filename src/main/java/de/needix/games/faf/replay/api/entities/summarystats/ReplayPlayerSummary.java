@@ -49,6 +49,18 @@ public class ReplayPlayerSummary {
     @Embedded
     private UnitStats units;
 
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ReplayPlayerSummary that = (ReplayPlayerSummary) o;
+        return id.equals(that.id);
+    }
+
     @Override
     public String toString() {
         return "ReplayPlayerSummary{" +

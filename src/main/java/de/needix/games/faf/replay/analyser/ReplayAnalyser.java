@@ -42,10 +42,6 @@ public class ReplayAnalyser {
         long startTime = System.currentTimeMillis();
 
         String filePath = file.getAbsolutePath();
-        if (!file.exists()) {
-            LOGGER.error("File not found: {}", filePath);
-            return;
-        }
 
         LOGGER.info("Analyzing file: {}", filePath);
         LOGGER.info("File size: {} bytes", file.length());

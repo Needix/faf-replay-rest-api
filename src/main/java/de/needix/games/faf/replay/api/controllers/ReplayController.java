@@ -1,12 +1,7 @@
 package de.needix.games.faf.replay.api.controllers;
 
-import de.needix.games.faf.replay.analyser.PlayerSummaryUpdater;
 import de.needix.games.faf.replay.analyser.ReplayAnalyser;
-import de.needix.games.faf.replay.api.entities.player.Player;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
-import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
-import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
-import de.needix.games.faf.replay.api.repositories.PlayerRepository;
 import de.needix.games.faf.replay.api.repositories.ReplayRepository;
 import de.needix.games.faf.replay.downloader.ReplayDownloader;
 import de.needix.games.faf.replay.exceptions.ReplayNotFoundException;
@@ -17,6 +12,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,11 +32,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -64,10 +64,21 @@ public class ReplayController {
     private String replayDownloadPath;
 
     @Autowired
-    private PlayerRepository playerRepository;
+    private ReplayRepository replayRepository;
 
     @Autowired
-    private ReplayRepository replayRepository;
+    private PlatformTransactionManager transactionManager;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    private TransactionTemplate transactionTemplate;
+
+    @PostConstruct
+    public void init() {
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
+
 
     @Operation(summary = "Reanalyzes all replays saved as files",
             description = "This endpoint reanalyzes all saved replay files and triggers an asynchronous reanalysis of all replays using multiple threads.")
@@ -82,12 +93,14 @@ public class ReplayController {
         asyncReplayAnalyserExecutorService.submit(() ->
         {
             try {
-                ReplayDownloader.getDownloadedReplays(replayDownloadPath, e -> {
-                    try {
-                        createDatabaseReplayEntity(e.toFile(), true);
-                    } catch (Exception ex) {
-                        LOGGER.error("Error occurred in reanalysis: ", ex);
-                    }
+                ReplayDownloader.getDownloadedReplays(replayDownloadPath, pathToReplay -> {
+                    transactionTemplate.executeWithoutResult(status -> {
+                        try {
+                            createDatabaseReplayEntity(pathToReplay.toFile(), true);
+                        } catch (Exception ex) {
+                            LOGGER.error("Error occurred in reanalysis: ", ex);
+                        }
+                    });
                 });
             } catch (Exception ex) {
                 LOGGER.error("Error occurred in reanalysis: ", ex);
@@ -99,135 +112,35 @@ public class ReplayController {
     }
 
     private Replay createDatabaseReplayEntity(File file, boolean forceSaving) throws IOException {
-        // Analyze the replay file
-        Replay replay = new Replay();
-        new ReplayAnalyser(file, replay).analyzeFAFReplay();
+        if (!file.exists()) {
+            throw new FileNotFoundException(file.getAbsolutePath() + " does not exist!");
+        }
 
-        if (!forceSaving) {
-            Optional<Replay> replayById = replayRepository.findById(replay.getId());
+        long replayId = ReplayAnalyser.getReplayId(file);
+
+        if (forceSaving) {
+            replayRepository.findById(replayId).ifPresent(existing -> {
+                LOGGER.info("Force saving: Deleting existing replay with ID {}", replayId);
+                replayRepository.delete(existing);
+                // Flush is required to ensure the deletion is synchronized with the DB
+                // and the persistence context is cleared of old entities before the new save.
+                replayRepository.flush();
+            });
+        } else {
+            Optional<Replay> replayById = replayRepository.findById(replayId);
             if (replayById.isPresent()) {
-                LOGGER.debug("Replay with ID {} already exists in database. Skipping database commit.", replay.getId());
+                LOGGER.debug("Replay with ID {} already exists in database. Skipping database commit.", replayId);
                 return replayById.get();
             }
         }
 
-        saveReplayInDatabase(replay);
-//        savePlayersInDatabase(replay);
+        Replay replay = new Replay();
+        new ReplayAnalyser(file, replay).analyzeFAFReplay();
+
+        RootController.saveEntityInDatabase(replayRepository, replay);
+        entityManager.detach(replay);
 
         return replay;
-    }
-
-    private void saveReplayInDatabase(Replay replay) {
-        replay.getPlayers().forEach(e -> toDatabasePlayer(e, getPlayerSummary(replay.getPlayerScores(), e)));
-
-        long startTime = System.currentTimeMillis();
-        // Save to repository
-        try {
-            replayRepository.save(replay);
-        } catch (Exception e) {
-            LOGGER.error("Failed to save replay to database: {}", e.getMessage(), e);
-            throw e;
-        }
-
-        if (LOGGER.isDebugEnabled()) {
-            long endTime = System.currentTimeMillis();
-            LOGGER.debug("Replay {} saved in {} ms", replay.getId(), endTime - startTime);
-        }
-    }
-
-    private Player toDatabasePlayer(ReplayPlayer replayPlayer, Optional<ReplayPlayerSummary> playerSummary) {
-        String ownerId = (String) replayPlayer.getArmyInformation().get("OwnerID");
-        if (ownerId == null) {
-            ownerId = "noOwnerId_" + replayPlayer.getName();
-        }
-
-        Player databasePlayer = playerRepository.findPlayerByOwnerId(ownerId);
-        if (databasePlayer == null) {
-            databasePlayer = new Player();
-            databasePlayer.setName(replayPlayer.getName());
-            databasePlayer.setOwnerId(ownerId);
-        }
-        replayPlayer.setPlayer(databasePlayer);
-        databasePlayer.getReplayPlayers().add(replayPlayer);
-        Player finalDatabasePlayer = databasePlayer;
-
-        playerSummary.ifPresent(e -> finalDatabasePlayer.getReplayPlayerSummaries().add(e));
-        PlayerSummaryUpdater.updatePlayerSummary(databasePlayer);
-
-        return databasePlayer;
-    }
-
-    private Optional<ReplayPlayerSummary> getPlayerSummary(List<ReplayPlayerSummary> playerScores, ReplayPlayer replayPlayer) {
-        return playerScores.stream().filter(replayPlayerSummary -> replayPlayerSummary.getName().equalsIgnoreCase(replayPlayer.getName())).findAny();
-    }
-
-    private void savePlayersInDatabase(Replay replay) {
-        long startTime = System.currentTimeMillis();
-        // Save to repository
-        try {
-            playerRepository.saveAll(replay.getPlayers().stream().map(e -> toDatabasePlayer(e, getPlayerSummary(replay.getPlayerScores(), e))).toList());
-        } catch (Exception e) {
-            LOGGER.error("Failed to save players to database: {}", e.getMessage(), e);
-            throw e;
-        }
-
-        if (LOGGER.isDebugEnabled()) {
-            long endTime = System.currentTimeMillis();
-            LOGGER.debug("Players for replay {} saved in {} ms", replay.getId(), endTime - startTime);
-        }
-    }
-
-    @Operation(summary = "Reanalyzes all replays in the database",
-            description = "This endpoint retrieves all replay IDs from the database and triggers an asynchronous reanalysis of all replays using multiple threads.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Reanalysis process started successfully"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
-    @PostMapping("/reanalyze-all")
-    public ResponseEntity<?> reanalyzeAllReplays() {
-        LOGGER.info("Reanalysis of all replays in database initiated.");
-
-        try {
-            // Fetch all replay IDs
-            Pageable pageable = Pageable.ofSize(1000);
-            Slice<Long> replayIds = replayRepository.getAllIds(pageable);
-
-            while (replayIds.hasNext()) {
-                final Slice<Long> finalReplayIds = replayIds;
-                asyncReplayAnalyserExecutorService.submit(() -> {
-                    finalReplayIds.forEach(e -> downloadAndAnalyseReplay(e, true));
-                });
-                pageable = replayIds.nextOrLastPageable();
-                replayIds = replayRepository.getAllIds(pageable);
-            }
-
-            LOGGER.info("Reanalysis tasks for replays have been submitted.");
-            return ResponseEntity.ok("Reanalysis of all replays has been started.");
-        } catch (Exception e) {
-            LOGGER.error("Error occurred while starting reanalysis: ", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while starting the reanalysis: " + e.getMessage());
-        }
-    }
-
-    private ResponseEntity<?> downloadAndAnalyseReplay(Long replayId, boolean forceSaving) {
-        File file;
-        try {
-            file = ReplayDownloader.downloadReplay(replayDownloadPath, replayId, false);
-        } catch (ReplayNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Replay with ID " + replayId + " not found.");
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to download replay with ID " + replayId + ": " + e.getMessage());
-        }
-
-        try {
-            return ResponseEntity.ok(createDatabaseReplayEntity(file, forceSaving));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to analyze replay with ID " + replayId + ": " + e.getMessage());
-        }
     }
 
     @Operation(summary = "Upload a FAF replay file",
@@ -342,36 +255,61 @@ public class ReplayController {
         }
     }
 
-    @Operation(summary = "Deletes all replays")
+    @Operation(summary = "Reanalyzes all replays in the database",
+            description = "This endpoint retrieves all replay IDs from the database and triggers an asynchronous reanalysis of all replays using multiple threads.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "All replays deleted",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Long.class))),
-            @ApiResponse(responseCode = "403", description = "You are not allowed to do this", content = @Content),
-            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+            @ApiResponse(responseCode = "200", description = "Reanalysis process started successfully"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @PostMapping("/delete")
-    public ResponseEntity<?> deleteAllReplays() {
-        LOGGER.info("Received request to delete all replays");
+    @PostMapping("/reanalyze-all")
+    public ResponseEntity<?> reanalyzeAllReplays() {
+        LOGGER.info("Reanalysis of all replays in database initiated.");
 
-        if (denyForceAnalyseAccess()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("You don't have permission to delete replays.");
+        try {
+            // Fetch all replay IDs
+            Pageable pageable = Pageable.ofSize(1000);
+            Slice<Long> replayIds = replayRepository.getAllIds(pageable);
+
+            while (replayIds.hasNext()) {
+                final Slice<Long> finalReplayIds = replayIds;
+                asyncReplayAnalyserExecutorService.submit(() -> {
+                    finalReplayIds.forEach(e -> {
+                        transactionTemplate.executeWithoutResult(status -> {
+                            downloadAndAnalyseReplay(e, true);
+                        });
+                    });
+                });
+                pageable = replayIds.nextOrLastPageable();
+                replayIds = replayRepository.getAllIds(pageable);
+            }
+
+            LOGGER.info("Reanalysis tasks for replays have been submitted.");
+            return ResponseEntity.ok("Reanalysis of all replays has been started.");
+        } catch (Exception e) {
+            LOGGER.error("Error occurred while starting reanalysis: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while starting the reanalysis: " + e.getMessage());
         }
-        replayRepository.deleteAll();
-        return ResponseEntity.ok("All replays deleted successfully.");
     }
 
-    private boolean denyForceAnalyseAccess() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            return authentication.getAuthorities().stream()
-                    .noneMatch(grantedAuthority ->
-                            grantedAuthority.getAuthority().equals("ROLE_ADMIN") ||
-                                    grantedAuthority.getAuthority().equals("REPLAY_FORCE_ACCESS")
-                    );
+    private ResponseEntity<?> downloadAndAnalyseReplay(Long replayId, boolean forceSaving) {
+        File file;
+        try {
+            file = ReplayDownloader.downloadReplay(replayDownloadPath, replayId, false);
+        } catch (ReplayNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Replay with ID " + replayId + " not found.");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to download replay with ID " + replayId + ": " + e.getMessage());
         }
-        return true;
+
+        try {
+            return ResponseEntity.ok(createDatabaseReplayEntity(file, forceSaving));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to analyze replay with ID " + replayId + ": " + e.getMessage());
+        }
     }
 
     @Operation(summary = "Returns all replays of a specific player")
@@ -396,85 +334,36 @@ public class ReplayController {
         return ResponseEntity.ok(replays);
     }
 
-    @Operation(summary = "Analyses a replay by id range")
+    @Operation(summary = "Deletes all replays")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "The specific replays will be analysed asynchronously.",
+            @ApiResponse(responseCode = "200", description = "All replays deleted",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = String.class))),
+                            schema = @Schema(implementation = Long.class))),
             @ApiResponse(responseCode = "403", description = "You are not allowed to do this", content = @Content),
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
     })
-    @GetMapping("/range")
-    public ResponseEntity<?> getReplaysByRange(
-            @Parameter(description = "The start index", example = "21428000")
-            @RequestParam("from")
-            Long from,
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteAllReplays() {
+        LOGGER.info("Received request to delete all replays");
 
-            @Parameter(description = "The end index", example = "21428010")
-            @RequestParam("to")
-            Long to) {
-        LOGGER.info("Received request for replays from {} to {}.", from, to);
-
-        if (denyForceAnalyseAccess()) {
+        if (denyNonAdminAccess()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("You don't have permission to forcibly reanalyze replays.");
+                    .body("You don't have permission to delete replays.");
         }
-
-        LOGGER.info("Analyzing replays from {} to {}.", from, to);
-
-        asyncReplayAnalyserExecutorService.submit(() -> {
-                    for (long currentReplayId = from; currentReplayId <= to; currentReplayId++) {
-                        try {
-                            ResponseEntity<?> responseEntity = getReplayById(currentReplayId, false);
-                            if (responseEntity.getStatusCode() != HttpStatus.OK) {
-                                LOGGER.warn("Failed to analyze replay with ID {}: {}", currentReplayId, responseEntity.getBody());
-                            }
-                        } catch (RuntimeException e) {
-                            LOGGER.error("Failed to analyze replay with ID {}: {}", currentReplayId, e.getMessage());
-                        }
-                    }
-                }
-        );
-
-        return ResponseEntity.ok("Replay processing started. This may take some time.");
+        replayRepository.deleteAll();
+        return ResponseEntity.ok("All replays deleted successfully.");
     }
 
-    @Operation(summary = "Analyses a replay by id")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "The specified replay.",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Replay.class))),
-            @ApiResponse(responseCode = "403", description = "You are not allowed to do this", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Replay was not found", content = @Content),
-            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
-    })
-    @GetMapping("/{replayId}")
-    public ResponseEntity<?> getReplayById(
-            @Parameter(description = "The id of the replay", example = "21428000")
-            @PathVariable("replayId")
-            Long replayId,
-
-            @Parameter(description = "To forcibly reanalyze the given replay, if it was already analyzed.",
-                    example = "false")
-            @RequestParam(value = "force", required = false, defaultValue = "false")
-            boolean force) {
-        LOGGER.info("Received request for replay with ID {}. Forcing reanalysis: {}", replayId, force);
-
-        if (force) {
-            // Dynamically check if the user has the required role/authority
-            if (denyForceAnalyseAccess()) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("You don't have permission to forcibly reanalyze replays.");
-            }
-            LOGGER.info("Forcibly reanalyzing replay with ID {}", replayId);
-        } else {
-            Optional<Replay> replayById = replayRepository.findById(replayId);
-            if (replayById.isPresent()) {
-                return ResponseEntity.ok(replayById.get());
-            }
+    private boolean denyNonAdminAccess() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            return authentication.getAuthorities().stream()
+                    .noneMatch(grantedAuthority ->
+                            grantedAuthority.getAuthority().equals("ROLE_ADMIN") ||
+                                    grantedAuthority.getAuthority().equals("REPLAY_FORCE_ACCESS")
+                    );
         }
-
-        return downloadAndAnalyseReplay(replayId, force);
+        return true;
     }
 
     @Operation(summary = "Download a FAF replay file by its ID")
@@ -508,6 +397,90 @@ public class ReplayController {
             LOGGER.error("Error while trying to fetch replay: {}", replayId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while trying to fetch replay");
         }
+    }
+
+    @Operation(summary = "Analyses a replay by id range")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The specific replays will be analysed asynchronously.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "403", description = "You are not allowed to do this", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
+    @GetMapping("/range")
+    public ResponseEntity<?> getReplaysByRange(
+            @Parameter(description = "The start index", example = "21428000")
+            @RequestParam("from")
+            Long from,
+
+            @Parameter(description = "The end index", example = "21428010")
+            @RequestParam("to")
+            Long to) {
+        LOGGER.info("Received request for replays from {} to {}.", from, to);
+
+        if (denyNonAdminAccess()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You don't have permission to forcibly reanalyze replays.");
+        }
+
+        LOGGER.info("Analyzing replays from {} to {}.", from, to);
+
+        asyncReplayAnalyserExecutorService.submit(() -> {
+                    for (long currentReplayId = from; currentReplayId <= to; currentReplayId++) {
+                        final long id = currentReplayId;
+                        try {
+                            transactionTemplate.executeWithoutResult(status -> {
+                                ResponseEntity<?> responseEntity = getReplayById(id, false);
+                                if (responseEntity.getStatusCode() != HttpStatus.OK) {
+                                    LOGGER.warn("Failed to analyze replay with ID {}: {}", id, responseEntity.getBody());
+                                }
+                            });
+                        } catch (RuntimeException e) {
+                            LOGGER.error("Failed to analyze replay with ID {}: {}", id, e.getMessage());
+                        }
+                    }
+                }
+        );
+
+        return ResponseEntity.ok("Replay processing started. This may take some time.");
+    }
+
+    @Operation(summary = "Analyses a replay by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The specified replay.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Replay.class))),
+            @ApiResponse(responseCode = "403", description = "You are not allowed to do this", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Replay was not found", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
+    @GetMapping("/{replayId}")
+    public ResponseEntity<?> getReplayById(
+            @Parameter(description = "The id of the replay", example = "21428000")
+            @PathVariable("replayId")
+            Long replayId,
+
+            @Parameter(description = "To forcibly reanalyze the given replay, if it was already analyzed.",
+                    example = "false")
+            @RequestParam(value = "force", required = false, defaultValue = "false")
+            boolean force) {
+        LOGGER.info("Received request for replay with ID {}. Forcing reanalysis: {}", replayId, force);
+
+        if (force) {
+            // Dynamically check if the user has the required role/authority
+            if (denyNonAdminAccess()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You don't have permission to forcibly reanalyze replays.");
+            }
+            LOGGER.info("Forcibly reanalyzing replay with ID {}", replayId);
+        } else {
+            Optional<Replay> replayById = replayRepository.findById(replayId);
+            if (replayById.isPresent()) {
+                return ResponseEntity.ok(replayById.get());
+            }
+        }
+
+        return downloadAndAnalyseReplay(replayId, force);
     }
 
     @PostConstruct
@@ -554,6 +527,19 @@ public class ReplayController {
         return false;
     }
 
+    @PostConstruct
+    public void importInitialReplaysFromHotfolder() {
+        asyncReplayAnalyserExecutorService.submit(() -> {
+            File[] hotfolderFiles = new File(HOTFOLDER_PATH).listFiles();
+            if (hotfolderFiles == null) return;
+            for (File file : hotfolderFiles) {
+                if (file.getName().endsWith(ReplayDownloader.FILE_EXTENSION)) {
+                    processReplayFileAsync(file);
+                }
+            }
+        });
+    }
+
     @Async
     public void processReplayFileAsync(File file) {
         Objects.requireNonNull(file, "file must not be null");
@@ -571,19 +557,6 @@ public class ReplayController {
                 Files.delete(file.toPath());
             } catch (IOException e) {
                 LOGGER.warn("Failed to process replay file: {}", e.getMessage());
-            }
-        });
-    }
-
-    @PostConstruct
-    public void importInitialReplaysFromHotfolder() {
-        asyncReplayAnalyserExecutorService.submit(() -> {
-            File[] hotfolderFiles = new File(HOTFOLDER_PATH).listFiles();
-            if (hotfolderFiles == null) return;
-            for (File file : hotfolderFiles) {
-                if (file.getName().endsWith(ReplayDownloader.FILE_EXTENSION)) {
-                    processReplayFileAsync(file);
-                }
             }
         });
     }

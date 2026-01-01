@@ -9,8 +9,10 @@ import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -115,10 +117,13 @@ public class ModeratorEventAnalyser {
             );
 
             replayPlayerSummaries.forEach(replayPlayerSummary -> replayPlayerSummary.setId(this.replayToFill.getId() + "_" + replayPlayerSummary.getName()));
+            replayPlayerSummaries.forEach(replayPlayerSummary -> replayPlayerSummary.setReplay(this.replayToFill));
 
-            LOGGER.debug("Deserialized replay player summaries: {}", replayPlayerSummaries);
+            Set<ReplayPlayerSummary> uniqueReplayPlayerSummaries = new LinkedHashSet<>(replayPlayerSummaries);
 
-            this.replayToFill.setPlayerScores(replayPlayerSummaries);
+            LOGGER.debug("Deserialized replay player summaries: {}", uniqueReplayPlayerSummaries);
+
+            this.replayToFill.setPlayerScores(uniqueReplayPlayerSummaries);
         } catch (Exception e) {
             LOGGER.error("Failed to process JsonStats \"{}\"! Exception: {}", jsonStats, e.getMessage(), e);
         }
