@@ -75,7 +75,5 @@ public class ReplayHeader {
         replayToFill.setRandomSeed(randomSeed);
         replayToFill.setPlayers(players);
     }
-
-    // Getters for individual fields can be added if needed
 }
 
