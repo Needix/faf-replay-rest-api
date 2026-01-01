@@ -20,7 +20,7 @@ public class FactionStats {
     @Id
     private String id;
 
-    private int faction;
+    private Faction faction;
     private int totalReplays;
 
     private int totalWins;

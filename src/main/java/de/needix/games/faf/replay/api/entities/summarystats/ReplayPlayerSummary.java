@@ -3,6 +3,7 @@ package de.needix.games.faf.replay.api.entities.summarystats;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.needix.games.faf.replay.analyser.parser.BlueprintsDeserializer;
+import de.needix.games.faf.replay.api.entities.player.Faction;
 import de.needix.games.faf.replay.api.entities.player.Player;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
 import jakarta.persistence.*;
@@ -23,7 +24,7 @@ public class ReplayPlayerSummary {
     private String type; // Example: "Human"
 
     private String name; // Example: "N0Y0U"
-    private int faction; // Example: 2
+    private Faction faction; // Example: 2
 
     @ManyToOne
     private Replay replay;
