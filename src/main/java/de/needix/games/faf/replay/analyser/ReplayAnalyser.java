@@ -31,6 +31,13 @@ public class ReplayAnalyser {
         this.luaAnalyser = new LuaAnalyser(replayToFill);
     }
 
+    public static long getReplayId(File file) throws IOException {
+        String jsonHeaderasString = getJsonHeader(file);
+        JsonObject jsonHeader = getJsonHeaderAsJsonObject(jsonHeaderasString);
+
+        return jsonHeader.get("uid").getAsLong();
+    }
+
     public void analyzeFAFReplay() throws IOException {
         long startTime = System.currentTimeMillis();
 
@@ -74,7 +81,7 @@ public class ReplayAnalyser {
         }
     }
 
-    private String getJsonHeader(File file) throws IOException {
+    private static String getJsonHeader(File file) throws IOException {
         Objects.requireNonNull(file, "file must not be null");
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -82,7 +89,7 @@ public class ReplayAnalyser {
         }
     }
 
-    private JsonObject getJsonHeaderAsJsonObject(String jsonHeader) {
+    private static JsonObject getJsonHeaderAsJsonObject(String jsonHeader) {
         Objects.requireNonNull(jsonHeader, "jsonHeader must not be null");
         return JsonParser.parseString(jsonHeader).getAsJsonObject();
     }
