@@ -1,6 +1,7 @@
 package de.needix.games.faf.replay.downloader;
 
 import de.needix.games.faf.replay.exceptions.ReplayNotFoundException;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,7 @@ public class ReplayDownloader {
 
         Files.walkFileTree(startPath, new SimpleFileVisitor<>() {
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+            public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
                 // Pass the file to the consumer
                 fileConsumer.accept(file);
                 return FileVisitResult.CONTINUE;
