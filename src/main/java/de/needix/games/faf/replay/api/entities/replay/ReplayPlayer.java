@@ -1,5 +1,6 @@
 package de.needix.games.faf.replay.api.entities.replay;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.needix.games.faf.replay.api.JsonAttributeConverter;
@@ -31,10 +32,12 @@ public class ReplayPlayer {
 
     private Boolean victory;
 
-    @ManyToOne
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     private Replay replay;
 
-    @ManyToOne
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     private Player player;
 
     private double massShared;

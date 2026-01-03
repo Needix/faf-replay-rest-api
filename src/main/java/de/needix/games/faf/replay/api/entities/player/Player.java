@@ -1,5 +1,6 @@
 package de.needix.games.faf.replay.api.entities.player;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
 import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
 import jakarta.persistence.*;
@@ -18,10 +19,12 @@ public class Player {
 
     private String name;
 
-    @OneToMany(mappedBy = "player", fetch = FetchType.EAGER)
+    @JsonIgnore
+    @OneToMany(mappedBy = "player")
     private Set<ReplayPlayer> replayPlayers = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "player", fetch = FetchType.EAGER)
+    @JsonIgnore
+    @OneToMany(mappedBy = "player")
     private Set<ReplayPlayerSummary> replayPlayerSummaries = new LinkedHashSet<>();
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)

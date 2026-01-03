@@ -1,5 +1,6 @@
 package de.needix.games.faf.replay.api.entities.summarystats;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.needix.games.faf.replay.analyser.parser.BlueprintsDeserializer;
@@ -24,10 +25,12 @@ public class ReplayPlayerSummary {
     private String name; // Example: "N0Y0U"
     private Faction faction; // Example: 2
 
-    @ManyToOne
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     private Replay replay;
 
-    @ManyToOne
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     private Player player;
 
     @JsonProperty("Defeated")
