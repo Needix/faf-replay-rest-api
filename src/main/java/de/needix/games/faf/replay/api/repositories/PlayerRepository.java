@@ -15,8 +15,8 @@ public interface PlayerRepository extends CrudRepository<Player, Long>, JpaSpeci
     @Query("SELECT p FROM Player p WHERE p.ownerId = :ownerId")
     Player findPlayerByOwnerId(@Param("ownerId") String ownerId);
 
-    @Query("SELECT r FROM Replay r WHERE (:cursor IS NULL OR r.id > :cursor) " +
-            "ORDER BY r.id ASC")
+    @Query("SELECT p FROM Player p WHERE (:cursor IS NULL OR p.ownerId > :cursor) " +
+            "ORDER BY p.ownerId ASC")
     List<Player> findPlayersWithCursor(@Param("cursor") Long cursor, Pageable pageable);
 
     @Query("SELECT ps from PlayerSummary ps where ps.name = :name")

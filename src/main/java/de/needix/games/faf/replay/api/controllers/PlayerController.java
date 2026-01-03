@@ -36,13 +36,13 @@ public class PlayerController {
 
     @Operation(summary = "Search players available in replays by playername")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Found replays",
+            @ApiResponse(responseCode = "200", description = "Found players",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = Page.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
     })
     @GetMapping("/search")
-    public ResponseEntity<List<?>> searchReplays(@RequestParam(required = false) String query,
+    public ResponseEntity<List<?>> searchPlayers(@RequestParam(required = false) String query,
                                                  @RequestParam(required = false) Long cursor,
                                                  @RequestParam(required = false) Integer size) {
         LOGGER.info("Received search request for query '{}' and cursor '{}'", query, cursor);
