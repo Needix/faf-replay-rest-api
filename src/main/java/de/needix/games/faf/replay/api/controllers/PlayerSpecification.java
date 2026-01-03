@@ -1,10 +1,10 @@
 package de.needix.games.faf.replay.api.controllers;
 
-import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
+import de.needix.games.faf.replay.api.entities.player.Player;
 import org.springframework.data.jpa.domain.Specification;
 
 public class PlayerSpecification {
-    public static Specification<ReplayPlayer> cursor(Long cursor) {
+    public static Specification<Player> cursor(Long cursor) {
         return (root, queryBuilder, criteriaBuilder) -> {
             if (cursor == null) {
                 return null;
@@ -14,7 +14,7 @@ public class PlayerSpecification {
     }
 
 
-    public static Specification<ReplayPlayer> playerNameContains(String query) {
+    public static Specification<Player> playerNameContains(String query) {
         return (root, queryBuilder, criteriaBuilder) -> {
             if (query == null || query.isBlank()) {
                 return null;

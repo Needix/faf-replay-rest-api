@@ -2,7 +2,6 @@ package de.needix.games.faf.replay.api.controllers;
 
 import de.needix.games.faf.replay.api.entities.player.Player;
 import de.needix.games.faf.replay.api.entities.player.PlayerSummary;
-import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
 import de.needix.games.faf.replay.api.repositories.PlayerRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -57,10 +56,10 @@ public class PlayerController {
 
         final long startTime = System.currentTimeMillis();
         try {
-            Specification<ReplayPlayer> spec = Specification.where(PlayerSpecification.playerNameContains(query))
+            Specification<Player> spec = Specification.where(PlayerSpecification.playerNameContains(query))
                     .and(PlayerSpecification.cursor(cursor));
 
-            Slice<ReplayPlayer> result = playerRepository.findSlice(spec, pageable, ReplayPlayer.class);
+            Slice<Player> result = playerRepository.findSlice(spec, pageable, Player.class);
 
             LOGGER.info("Found (filter) {} results in {} ms", result.getNumberOfElements(), System.currentTimeMillis() - startTime);
             return ResponseEntity.ok(result.getContent()); // Return only IDs
@@ -84,6 +83,6 @@ public class PlayerController {
             @PathVariable("playerName")
             String playerName) {
 
-        return ResponseEntity.ok(playerRepository.findReplayPlayerSummary(playerName));
+        return ResponseEntity.ok(playerRepository.findPlayerSummary(playerName));
     }
 }

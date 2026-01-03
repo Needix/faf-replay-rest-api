@@ -20,5 +20,5 @@ public interface PlayerRepository extends CrudRepository<Player, Long>, JpaSpeci
     List<Player> findPlayersWithCursor(@Param("cursor") Long cursor, Pageable pageable);
 
     @Query("SELECT ps from PlayerSummary ps where ps.name = :name")
-    PlayerSummary findReplayPlayerSummary(@Param("cursor") String name);
+    PlayerSummary findPlayerSummary(@Param("cursor") String name);
 }
