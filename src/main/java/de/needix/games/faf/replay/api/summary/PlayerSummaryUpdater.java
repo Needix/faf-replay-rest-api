@@ -8,10 +8,7 @@ import de.needix.games.faf.replay.api.entities.summarystats.UnitStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class PlayerSummaryUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayerSummaryUpdater.class);
@@ -89,15 +86,19 @@ public class PlayerSummaryUpdater {
     }
 
     private static void cleanPlayerNameHistory(Map<Date, String> playerNameHistory) {
-        playerNameHistory.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .filter(entry -> entry.getValue() != null)
-                .filter(entry ->
-                        !entry.getValue().equals(PreviousStringHolder.PREVIOUS)
-                )
-                .peek(entry -> PreviousStringHolder.PREVIOUS = entry.getValue())
-                .map(Map.Entry::getKey)
-                .forEach(playerNameHistory::remove);
+        List<Map.Entry<Date, String>> sortedEntriesByDate = new ArrayList<>(playerNameHistory.entrySet());
+        sortedEntriesByDate.sort(Map.Entry.comparingByKey());
+
+        String lastName = null;
+        List<Date> datesToRemove = new ArrayList<>();
+        for (Map.Entry<Date, String> playerNameEntry : sortedEntriesByDate) {
+            if (playerNameEntry.getValue() == null || playerNameEntry.getValue().equals(lastName)) {
+                datesToRemove.add(playerNameEntry.getKey());
+            } else {
+                lastName = playerNameEntry.getValue();
+            }
+        }
+        datesToRemove.forEach(playerNameHistory::remove);
     }
 
     private void addUnitStats(UnitStats combined, UnitStats toAdd) {
@@ -173,10 +174,5 @@ public class PlayerSummaryUpdater {
             combined.getStorage().setMaxEnergy(combined.getStorage().getMaxEnergy() + toAdd.getStorage().getMaxEnergy());
             combined.getStorage().setStoredEnergy(combined.getStorage().getStoredEnergy() + toAdd.getStorage().getStoredEnergy());
         }
-    }
-
-    // Helper class to hold the previous string
-    static class PreviousStringHolder {
-        static String PREVIOUS = null;
     }
 }
