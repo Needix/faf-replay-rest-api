@@ -1,5 +1,6 @@
 package de.needix.games.faf.replay.api.configuration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -17,6 +18,12 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @Configuration
 @EnableAspectJAutoProxy
 public class ReplayRestApiConfig {
+    @Value("${ADMIN_PASSWORD:admin_password}")
+    private String adminPassword;
+
+    @Value("${USER_PASSWORD:user_password}")
+    private String userPassword;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -43,17 +50,17 @@ public class ReplayRestApiConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         // Add in-memory users with roles and authorities (used for testing)
-        var user1 = User.withUsername("admin")
-                .password(passwordEncoder().encode("admin_password"))
+        var admin = User.withUsername("admin")
+                .password(passwordEncoder().encode(adminPassword))
                 .roles("ADMIN") // Grant ROLE_ADMIN
                 .build();
 
-        var user2 = User.withUsername("user")
-                .password(passwordEncoder().encode("user_password"))
+        var user = User.withUsername("user")
+                .password(passwordEncoder().encode(userPassword))
                 .roles("USER")  // Grant ROLE_USER
                 .build();
 
-        return new InMemoryUserDetailsManager(user1, user2);
+        return new InMemoryUserDetailsManager(admin, user);
     }
 
     @Bean
