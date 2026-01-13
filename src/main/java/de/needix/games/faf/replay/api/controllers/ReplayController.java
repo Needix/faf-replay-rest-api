@@ -90,6 +90,11 @@ public class ReplayController {
     public ResponseEntity<?> reanalyzeAllReplayFiles() {
         LOGGER.info("Reanalysis of all replay files initiated.");
 
+        if (denyNonAdminAccess()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You don't have permission to reanalyze replays.");
+        }
+
         asyncReplayAnalyserExecutorService.submit(() ->
         {
             try {
@@ -264,6 +269,11 @@ public class ReplayController {
     @PostMapping("/reanalyze-all")
     public ResponseEntity<?> reanalyzeAllReplays() {
         LOGGER.info("Reanalysis of all replays in database initiated.");
+
+        if (denyNonAdminAccess()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You don't have permission to reanalyze replays.");
+        }
 
         try {
             // Fetch all replay IDs
