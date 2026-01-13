@@ -230,7 +230,7 @@ public class ReplayController {
         LOGGER.info("Received request for search with options: {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
                 query, completeStatus, mods, gameTypes, numberOfPlayersMin, numberOfPlayersMax, timeFrameStart, timeFrameEnd, rankedOnly, cursor, size);
 
-        Pageable pageable = PageRequest.of(0, size != null ? size : 20); // Default to 20 replays per request
+        Pageable pageable = PageRequest.of(0, size != null ? size > 100 ? 100 : size : 20); // Default to 20 replays per request
 
         if (StringUtils.isEmpty(query) && (mods == null || mods.isEmpty()) && (gameTypes == null || gameTypes.isEmpty()) && numberOfPlayersMin == null && numberOfPlayersMax == null && timeFrameStart == null && timeFrameEnd == null && !rankedOnly) {
             List<Replay> replays = replayRepository.findReplaysWithCursor(cursor, pageable);
