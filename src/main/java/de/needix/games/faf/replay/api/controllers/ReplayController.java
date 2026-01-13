@@ -322,28 +322,6 @@ public class ReplayController {
         }
     }
 
-    @Operation(summary = "Returns all replays of a specific player")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "All replays of a specific player.",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = List.class))),
-            @ApiResponse(responseCode = "404", description = "No replays for that player found", content = @Content),
-            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
-    })
-    @GetMapping("/player/{username}")
-    public ResponseEntity<List<Replay>> getReplaysByPlayerName(
-            @Parameter(description = "The username of the player", example = "Need")
-            @PathVariable("username")
-            String username) {
-        LOGGER.info("Received request for replays of player '{}'", username);
-
-        List<Replay> replays = replayRepository.findAllReplaysByPlayerName(username);
-        if (replays.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-        return ResponseEntity.ok(replays);
-    }
-
     @Operation(summary = "Deletes all replays")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "All replays deleted",
