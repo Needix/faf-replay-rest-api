@@ -51,6 +51,7 @@ public class PlayerSummaryUpdater {
             factionStats.setTotalEnergyShared(factionStats.getTotalEnergyShared() + resourceStats.getEnergyOut().getTotal());
             factionStats.setTotalMassReceived(factionStats.getTotalMassReceived() + resourceStats.getMassIn().getTotal());
             factionStats.setTotalMassShared(factionStats.getTotalMassShared() + resourceStats.getMassOut().getTotal());
+            factionStats.increaseTotalReplays();
         }
 
         Set<ReplayPlayer> allReplayPlayers = player.getReplayPlayers();

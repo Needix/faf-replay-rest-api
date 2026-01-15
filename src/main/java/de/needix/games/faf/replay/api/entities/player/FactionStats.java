@@ -54,4 +54,8 @@ public class FactionStats {
     private double totalEnergyShared;
     private double totalMassReceived;
     private double totalEnergyReceived;
+
+    public void increaseTotalReplays() {
+        totalReplays++;
+    }
 }
