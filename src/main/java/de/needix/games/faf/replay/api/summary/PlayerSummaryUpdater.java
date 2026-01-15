@@ -1,6 +1,7 @@
 package de.needix.games.faf.replay.api.summary;
 
 import de.needix.games.faf.replay.api.entities.player.*;
+import de.needix.games.faf.replay.api.entities.replay.Replay;
 import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
 import de.needix.games.faf.replay.api.entities.replay.ReplayPlayerApm;
 import de.needix.games.faf.replay.api.entities.summarystats.*;
@@ -35,7 +36,9 @@ public class PlayerSummaryUpdater {
 
         Set<ReplayPlayerSummary> replayPlayerSummaries = player.getReplayPlayerSummaries();
         for (ReplayPlayerSummary replayPlayerSummary : replayPlayerSummaries) {
-            Date date = new Date(replayPlayerSummary.getReplay().getGameStart() * 1000);
+            ReplayPlayer replayPlayer = replayPlayerSummary.getReplayPlayer();
+            Replay replay = replayPlayer.getReplay();
+            Date date = new Date(replay.getGameStart() * 1000);
 
             Faction faction = replayPlayerSummary.getFaction();
 

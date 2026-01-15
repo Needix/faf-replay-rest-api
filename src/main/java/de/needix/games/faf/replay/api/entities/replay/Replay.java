@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.needix.games.faf.replay.api.JsonAttributeConverter;
 import de.needix.games.faf.replay.api.entities.chat.ReplayChatMessage;
-import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -54,8 +53,6 @@ public class Replay {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReplayChatMessage> chatMessages = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "replay", fetch = FetchType.EAGER)
-    private Set<ReplayPlayerSummary> playerScores = new LinkedHashSet<>();
     /**
      * {
      * "preview": "",

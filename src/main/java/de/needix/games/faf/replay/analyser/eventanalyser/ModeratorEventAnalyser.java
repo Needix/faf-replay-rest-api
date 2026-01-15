@@ -4,15 +4,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.needix.games.faf.replay.analyser.parser.Command;
 import de.needix.games.faf.replay.api.entities.replay.Replay;
+import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
 import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
 import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -117,16 +116,19 @@ public class ModeratorEventAnalyser {
             );
 
             replayPlayerSummaries.forEach(replayPlayerSummary -> replayPlayerSummary.setId(this.replayToFill.getId() + "_" + replayPlayerSummary.getName()));
-            replayPlayerSummaries.forEach(replayPlayerSummary -> replayPlayerSummary.setReplay(this.replayToFill));
+            replayPlayerSummaries.forEach(replayPlayerSummary -> replayPlayerSummary.setReplayPlayer(findReplayPlayer(replayToFill.getPlayers(), replayPlayerSummary.getName())));
 
-            Set<ReplayPlayerSummary> uniqueReplayPlayerSummaries = new LinkedHashSet<>(replayPlayerSummaries);
-
-            LOGGER.debug("Deserialized replay player summaries: {}", uniqueReplayPlayerSummaries);
-
-            this.replayToFill.setPlayerScores(uniqueReplayPlayerSummaries);
+            LOGGER.debug("Deserialized replay player summaries: {}", replayPlayerSummaries);
         } catch (Exception e) {
             LOGGER.error("Failed to process JsonStats \"{}\"! Exception: {}", jsonStats, e.getMessage(), e);
         }
+    }
+
+    private ReplayPlayer findReplayPlayer(List<ReplayPlayer> replayToFill, String name) {
+        return replayToFill.stream()
+                .filter(replayPlayer -> replayPlayer.getName().equals(name))
+                .findFirst()
+                .orElse(null);
     }
 
     private void handleGameEnded(String noData) {

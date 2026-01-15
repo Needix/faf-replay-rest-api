@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.needix.games.faf.replay.api.JsonAttributeConverter;
 import de.needix.games.faf.replay.api.entities.order.TargetOrder;
 import de.needix.games.faf.replay.api.entities.player.Player;
+import de.needix.games.faf.replay.api.entities.summarystats.ReplayPlayerSummary;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -35,6 +36,10 @@ public class ReplayPlayer {
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     private Replay replay;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "replayPlayer")
+    private ReplayPlayerSummary replayPlayerSummary;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

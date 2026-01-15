@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.needix.games.faf.replay.analyser.parser.BlueprintsDeserializer;
 import de.needix.games.faf.replay.api.entities.player.Faction;
 import de.needix.games.faf.replay.api.entities.player.Player;
-import de.needix.games.faf.replay.api.entities.replay.Replay;
+import de.needix.games.faf.replay.api.entities.replay.ReplayPlayer;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,8 +26,9 @@ public class ReplayPlayerSummary {
     private Faction faction; // Example: 2
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Replay replay;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "replay_player_id")
+    private ReplayPlayer replayPlayer;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

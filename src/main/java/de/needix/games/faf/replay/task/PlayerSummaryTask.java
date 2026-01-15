@@ -85,7 +85,7 @@ public class PlayerSummaryTask {
         replayPlayer.setPlayer(databasePlayer);
 
         final Player finalDatabasePlayer = databasePlayer;
-        Optional<ReplayPlayerSummary> optionalPlayerSummary = getPlayerSummary(replay.getPlayerScores(), replayPlayer);
+        Optional<ReplayPlayerSummary> optionalPlayerSummary = Optional.ofNullable(replayPlayer.getReplayPlayerSummary());
         optionalPlayerSummary.ifPresent(replayPlayerSummary -> replayPlayerSummary.setPlayer(finalDatabasePlayer));
 
         replay.setNewReplay(false);
